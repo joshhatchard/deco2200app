@@ -147,7 +147,8 @@ private struct ReviewDeck: View {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .fill(Palette.tileColor(hue: state.currentHue, seed: shot.index + state.seed))
                 #if canImport(UIKit)
-                if let data = shot.imageData, let ui = UIImage(data: data) {
+                if let data = shot.imageData,
+                   let ui = ImageCache.image(key: shot.id.uuidString, data: data) {
                     Image(uiImage: ui).resizable().scaledToFill()
                 }
                 #endif

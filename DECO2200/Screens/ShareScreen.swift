@@ -110,7 +110,14 @@ struct ShareScreen: View {
     }
 
     @MainActor private func prepareShareURL() {
-        guard let image = currentCollageImage(),
+        // Share a self-contained polaroid (collage + title + time), not the
+        // bare collage that the in-app feed frames itself.
+        guard let image = renderPolaroidImage(theme: state.themeTitle,
+                                              timeString: state.formattedElapsed,
+                                              count: state.photos.count,
+                                              seed: state.seed,
+                                              hue: state.currentHue,
+                                              photos: state.photos.map(\.imageData)),
               let data = image.jpegData(compressionQuality: 0.9) else { return }
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("scrapmap-collage.jpg")
         if (try? data.write(to: url)) != nil { shareURL = url }

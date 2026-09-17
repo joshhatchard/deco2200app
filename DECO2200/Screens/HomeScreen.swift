@@ -187,26 +187,23 @@ struct HomeScreen: View {
     }
 }
 
-/// A persisted, user-posted collage rendered as a feed card. Shows the stored
-/// collage image rather than the live tile view.
+/// A persisted, user-posted collage rendered as a flip feed card — front shows
+/// the stored collage image, back shows the walk stats, matching other cards.
 private struct SavedFeedCard: View {
     let saved: SavedCollage
+    @State private var flipped = false
 
     var body: some View {
         VStack(spacing: 0) {
             PolaroidFrame(pinColor: saved.hue) {
-                VStack(alignment: .leading, spacing: 0) {
-                    collageImage
-                        .aspectRatio(1, contentMode: .fit)
-                        .frame(maxWidth: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                    HStack {
-                        Text(saved.theme).font(.display(19, weight: .bold))
-                        Spacer()
-                        MonoLabel(text: "Yours", size: 9.5, tracking: 1)
-                    }
-                    .padding(.top, 12)
+                FlipCard(flipped: flipped) {
+                    front
+                } back: {
+                    back
                 }
+                .aspectRatio(0.92, contentMode: .fit)
+                .contentShape(Rectangle())
+                .onTapGesture { flipped.toggle() }
             }
 
             HStack(spacing: 13) {
@@ -222,10 +219,53 @@ private struct SavedFeedCard: View {
         }
     }
 
+    private var front: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            collageImage
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+            HStack {
+                Text(saved.theme).font(.display(19, weight: .bold))
+                Spacer()
+                MonoLabel(text: "Tap = stats", size: 9.5, tracking: 1)
+            }
+            .padding(.top, 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var back: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            MonoLabel(text: "Break time", size: 10, color: Palette.ink, tracking: 1.4)
+            Text(saved.timeString).font(.mono(40, weight: .medium)).foregroundStyle(Palette.ink)
+            HStack(spacing: 9) {
+                statTile(value: "\(saved.count)", label: "Photos")
+                statTile(value: saved.distance, label: "Route")
+            }
+            .padding(.top, 14)
+            Spacer(minLength: 0)
+            MonoLabel(text: "Tap = photos", size: 9.5, color: Palette.ink, tracking: 1)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(saved.hue))
+    }
+
+    private func statTile(value: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(value).font(.display(26, weight: .heavy)).foregroundStyle(Palette.ink)
+            MonoLabel(text: label, size: 9.5, color: Palette.ink, tracking: 1)
+        }
+        .padding(13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(.white.opacity(0.55)))
+    }
+
     @ViewBuilder private var collageImage: some View {
         #if canImport(UIKit)
-        if let ui = UIImage(data: saved.imageData) {
-            Image(uiImage: ui).resizable()
+        if let ui = ImageCache.image(key: "\(saved.persistentModelID)", data: saved.imageData) {
+            Image(uiImage: ui).resizable().scaledToFill()
         } else {
             Rectangle().fill(saved.hue.opacity(0.2))
         }

@@ -39,6 +39,20 @@ struct BreakScreen: View {
                 VStack(spacing: 0) {
                     ZStack {
                         cameraBackground
+                        #if canImport(UIKit)
+                        if camera.isAuthorized {
+                            Button { camera.flip() } label: {
+                                Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(Palette.ink)
+                                    .frame(width: 40, height: 40)
+                                    .background(Circle().fill(.white.opacity(0.9)))
+                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                            .padding(12)
+                        }
+                        #endif
                         VStack(alignment: .leading, spacing: 2) {
                             MonoLabel(text: state.huntKind, size: 9, color: Color(hex: 0x6B5A17), tracking: 1.4)
                             Text(state.themeTitle)

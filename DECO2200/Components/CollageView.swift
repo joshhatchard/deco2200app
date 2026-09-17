@@ -97,4 +97,43 @@ func renderCollageImage(count: Int, seed: Int, hue: Color, photos: [Data?], side
     renderer.scale = 2
     return renderer.uiImage
 }
+
+/// Renders a self-contained "polaroid" for sharing/exporting: the collage in a
+/// white card with the hunt title and walk time beneath it, on a soft tint.
+@MainActor
+func renderPolaroidImage(theme: String, timeString: String, count: Int,
+                         seed: Int, hue: Color, photos: [Data?]) -> UIImage? {
+    let photoSide: CGFloat = 900
+    let card = VStack(alignment: .leading, spacing: 0) {
+        CollageView(count: max(count, 1), seed: seed, hue: hue, gap: 8, photos: photos)
+            .frame(width: photoSide, height: photoSide)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        VStack(alignment: .leading, spacing: 8) {
+            Text(theme)
+                .font(.display(52, weight: .heavy))
+                .foregroundStyle(Palette.ink)
+                .lineLimit(2)
+            Text("\(timeString) · \(count) photos")
+                .font(.mono(26, weight: .medium))
+                .foregroundStyle(Palette.mutedInk)
+        }
+        .frame(width: photoSide, alignment: .leading)
+        .padding(.top, 30)
+    }
+    .padding(36)
+    .background(RoundedRectangle(cornerRadius: 28, style: .continuous).fill(.white))
+    .padding(60)
+    .background(hue.opacity(0.22))
+
+    let renderer = ImageRenderer(content: card)
+    renderer.scale = 2
+    return renderer.uiImage
+}
+
+#Preview("Polaroid export") {
+    if let ui = renderPolaroidImage(theme: "Look up", timeString: "12:04", count: 7,
+                                    seed: 3, hue: Palette.green, photos: []) {
+        Image(uiImage: ui).resizable().scaledToFit().padding()
+    }
+}
 #endif
