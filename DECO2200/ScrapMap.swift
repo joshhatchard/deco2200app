@@ -11,7 +11,7 @@ import SwiftUI
 struct DECO2200App: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
 }
