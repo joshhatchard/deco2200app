@@ -1,4 +1,8 @@
 import SwiftUI
+import SwiftData
+#if canImport(UIKit)
+import UIKit
+#endif
 
 private struct Audience: Identifiable {
     let id: String
@@ -15,6 +19,8 @@ private let audiences: [Audience] = [
 
 struct ShareScreen: View {
     @ObservedObject var state: AppState
+    @Environment(\.modelContext) private var modelContext
+    @State private var shareURL: URL?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -55,22 +61,78 @@ struct ShareScreen: View {
                 .padding(.bottom, 18)
             }
 
-            Button {
-                state.post()
-            } label: {
-                Text(state.postLabel)
-                    .font(.display(21, weight: .bold))
-                    .foregroundStyle(Palette.cream)
-                    .frame(maxWidth: .infinity).frame(height: 60)
-                    .background(Capsule().fill(Palette.ink))
+            VStack(spacing: 10) {
+                #if canImport(UIKit)
+                if let shareURL {
+                    ShareLink(item: shareURL) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "square.and.arrow.up").font(.system(size: 15, weight: .bold))
+                            Text("Export / send image").font(.display(16, weight: .bold))
+                        }
+                        .foregroundStyle(Palette.ink)
+                        .frame(maxWidth: .infinity).frame(height: 52)
+                        .background(Capsule().fill(Palette.ink.opacity(0.08)))
+                        .overlay(Capsule().strokeBorder(Palette.ink.opacity(0.18), lineWidth: 1.5))
+                        .contentShape(Capsule())
+                    }
+                }
+                #endif
+
+                Button {
+                    savePost()
+                    state.post()
+                } label: {
+                    Text(state.postLabel)
+                        .font(.display(21, weight: .bold))
+                        .foregroundStyle(Palette.cream)
+                        .frame(maxWidth: .infinity).frame(height: 60)
+                        .background(Capsule().fill(Palette.ink))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
             .padding(.horizontal, 22)
             .padding(.top, 10)
             .padding(.bottom, 38)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.shareBg)
+        #if canImport(UIKit)
+        .onAppear { prepareShareURL() }
+        #endif
+    }
+
+    // MARK: - Export & persist
+
+    #if canImport(UIKit)
+    @MainActor private func currentCollageImage() -> UIImage? {
+        renderCollageImage(count: state.photos.count, seed: state.seed,
+                           hue: state.currentHue, photos: state.photos.map(\.imageData))
+    }
+
+    @MainActor private func prepareShareURL() {
+        guard let image = currentCollageImage(),
+              let data = image.jpegData(compressionQuality: 0.9) else { return }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("scrapmap-collage.jpg")
+        if (try? data.write(to: url)) != nil { shareURL = url }
+    }
+    #endif
+
+    @MainActor private func savePost() {
+        #if canImport(UIKit)
+        guard let image = currentCollageImage(),
+              let data = image.jpegData(compressionQuality: 0.9) else { return }
+        let ui = UIColor(state.currentHue)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+        let saved = SavedCollage(theme: state.themeTitle,
+                                 timeString: state.formattedElapsed,
+                                 count: state.photos.count,
+                                 distance: "1.4 km",
+                                 hueRed: Double(r), hueGreen: Double(g), hueBlue: Double(b),
+                                 imageData: data)
+        modelContext.insert(saved)
+        try? modelContext.save()
+        #endif
     }
 
     private func audienceCard(_ a: Audience) -> some View {

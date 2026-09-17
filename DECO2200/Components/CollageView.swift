@@ -80,3 +80,21 @@ struct CollageView: View {
         }
     }
 }
+
+#if canImport(UIKit)
+/// Renders a collage to a square image for exporting/sharing and for storing
+/// alongside a persisted post. Runs on the main actor via `ImageRenderer`.
+@MainActor
+func renderCollageImage(count: Int, seed: Int, hue: Color, photos: [Data?], side: CGFloat = 1080) -> UIImage? {
+    let content = ZStack {
+        Palette.cream
+        CollageView(count: max(count, 1), seed: seed, hue: hue, gap: 6, photos: photos)
+            .padding(24)
+    }
+    .frame(width: side, height: side)
+
+    let renderer = ImageRenderer(content: content)
+    renderer.scale = 2
+    return renderer.uiImage
+}
+#endif

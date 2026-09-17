@@ -1,8 +1,13 @@
 import SwiftUI
+import SwiftData
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct HomeScreen: View {
     @ObservedObject var state: AppState
     @State private var dotPulse = false
+    @Query(sort: \SavedCollage.createdAt, order: .reverse) private var savedCollages: [SavedCollage]
 
     private let dayHues: [Color?] = [Palette.butter, Palette.sky, Palette.coral, Palette.mint, Palette.lilac, nil, nil]
     private let dayLetters = ["M", "T", "W", "T", "F", "S", "S"]
@@ -170,12 +175,63 @@ struct HomeScreen: View {
 
     private var feedList: some View {
         VStack(spacing: 30) {
+            ForEach(savedCollages) { saved in
+                SavedFeedCard(saved: saved)
+            }
             ForEach(state.feed) { post in
                 FeedCard(post: post,
                          onFlip: { state.toggleFlip(post) },
                          onLike: { state.toggleLike(post) })
             }
         }
+    }
+}
+
+/// A persisted, user-posted collage rendered as a feed card. Shows the stored
+/// collage image rather than the live tile view.
+private struct SavedFeedCard: View {
+    let saved: SavedCollage
+
+    var body: some View {
+        VStack(spacing: 0) {
+            PolaroidFrame(pinColor: saved.hue) {
+                VStack(alignment: .leading, spacing: 0) {
+                    collageImage
+                        .aspectRatio(1, contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                    HStack {
+                        Text(saved.theme).font(.display(19, weight: .bold))
+                        Spacer()
+                        MonoLabel(text: "Yours", size: 9.5, tracking: 1)
+                    }
+                    .padding(.top, 12)
+                }
+            }
+
+            HStack(spacing: 13) {
+                Circle().fill(saved.hue).frame(width: 34, height: 34)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("You").font(.body(13.5, weight: .heavy))
+                    Text("\(saved.timeString) · \(saved.count) photos")
+                        .font(.mono(9.5)).foregroundStyle(Palette.mutedInk)
+                }
+                Spacer(minLength: 8)
+            }
+            .padding(.top, 12)
+        }
+    }
+
+    @ViewBuilder private var collageImage: some View {
+        #if canImport(UIKit)
+        if let ui = UIImage(data: saved.imageData) {
+            Image(uiImage: ui).resizable()
+        } else {
+            Rectangle().fill(saved.hue.opacity(0.2))
+        }
+        #else
+        Rectangle().fill(saved.hue.opacity(0.2))
+        #endif
     }
 }
 

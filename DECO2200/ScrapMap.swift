@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct DECO2200App: App {
@@ -13,5 +14,6 @@ struct DECO2200App: App {
         WindowGroup {
             RootView()
         }
+        .modelContainer(for: SavedCollage.self)
     }
 }

@@ -133,17 +133,10 @@ final class AppState: ObservableObject {
 
     // MARK: - Share / post
 
+    /// The posted collage itself is persisted via SwiftData in the share
+    /// screen (so it survives relaunch and stays on the feed); here we just
+    /// bump the streak, clear the walk, and return home.
     func post() {
-        let entry = ScrapPost(
-            name: "Maya Okonkwo",
-            meta: "Just now · your walk",
-            theme: themeTitle,
-            seed: seed,
-            time: formattedElapsed,
-            count: photos.count,
-            hue: currentHue
-        )
-        feed.insert(entry, at: 0)
         streak += 1
         photos = []
         elapsedSeconds = 0
