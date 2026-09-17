@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Proportional flex-row collage: photos split into rows sized by how many
 /// they hold, so the frame is always exactly filled at any photo count —
@@ -13,6 +16,9 @@ struct CollageView: View {
     /// Staggers each tile in with the prototype's `pf-land` pop, used right
     /// after a shake lands a new arrangement.
     var animateIn: Bool = false
+    /// Real captured photos aligned to the flattened tile index. Empty for the
+    /// abstract/other-user collages, which stay as tinted tiles.
+    var photos: [Data?] = []
 
     private var rows: [CollageRow] { collageRows(count: count, seed: seed) }
 
@@ -26,6 +32,7 @@ struct CollageView: View {
                         ForEach(Array(row.indices.enumerated()), id: \.offset) { colIndex, photoIndex in
                             Tile(
                                 color: Palette.tileColor(hue: hue, seed: seed + photoIndex),
+                                imageData: photoIndex < photos.count ? photos[photoIndex] : nil,
                                 cornerRadius: cornerRadius,
                                 animateIn: animateIn,
                                 delay: 0.05 * Double(rowIndex * 2 + colIndex)
@@ -40,6 +47,7 @@ struct CollageView: View {
 
     private struct Tile: View {
         var color: Color
+        var imageData: Data?
         var cornerRadius: CGFloat
         var animateIn: Bool
         var delay: Double
@@ -49,6 +57,16 @@ struct CollageView: View {
         var body: some View {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(color)
+                .overlay {
+                    #if canImport(UIKit)
+                    if let imageData, let uiImage = UIImage(data: imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    #endif
+                }
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .scaleEffect(shown || !animateIn ? 1 : 0.55)
                 .rotationEffect(.degrees(shown || !animateIn ? 0 : -8))

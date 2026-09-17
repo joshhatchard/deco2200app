@@ -97,7 +97,8 @@ struct ShareScreen: View {
 
     private var previewCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            CollageView(count: state.photos.count, seed: state.seed, hue: state.currentHue, gap: 4)
+            CollageView(count: state.photos.count, seed: state.seed, hue: state.currentHue, gap: 4,
+                        photos: state.photos.map(\.imageData))
                 .aspectRatio(1, contentMode: .fit)
             HStack {
                 Text(state.themeTitle).font(.display(17, weight: .heavy))

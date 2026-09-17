@@ -25,6 +25,9 @@ struct PhotoShot: Identifiable {
     let id = UUID()
     let index: Int
     var caption: String
+    /// Encoded camera capture (JPEG/HEIC). Nil for the demo-fallback shots,
+    /// which render as tinted placeholder tiles.
+    var imageData: Data? = nil
 }
 
 enum SeedData {

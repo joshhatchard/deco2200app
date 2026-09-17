@@ -86,8 +86,8 @@ final class AppState: ObservableObject {
         screen = .breakScreen
     }
 
-    func capture() {
-        photos.append(PhotoShot(index: photos.count, caption: "shot \(photos.count + 1)"))
+    func capture(imageData: Data? = nil) {
+        photos.append(PhotoShot(index: photos.count, caption: "shot \(photos.count + 1)", imageData: imageData))
     }
 
     func finishShooting() {

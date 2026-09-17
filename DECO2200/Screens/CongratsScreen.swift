@@ -68,7 +68,8 @@ struct CongratsScreen: View {
 
     private var front: some View {
         VStack(alignment: .leading, spacing: 0) {
-            CollageView(count: state.photos.count, seed: state.seed, hue: state.currentHue, gap: 5)
+            CollageView(count: state.photos.count, seed: state.seed, hue: state.currentHue, gap: 5,
+                        photos: state.photos.map(\.imageData))
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
             HStack {

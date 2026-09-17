@@ -1,8 +1,14 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct BreakScreen: View {
     @ObservedObject var state: AppState
     @State private var showChangeHunt = false
+    #if canImport(UIKit)
+    @StateObject private var camera = CameraController()
+    #endif
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,8 +38,7 @@ struct BreakScreen: View {
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Palette.ink.opacity(0.86))
-                        MonoLabel(text: "Live camera", size: 10, color: Palette.cream.opacity(0.5), tracking: 1.6)
+                        cameraBackground
                         VStack(alignment: .leading, spacing: 2) {
                             MonoLabel(text: state.huntKind, size: 9, color: Color(hex: 0x6B5A17), tracking: 1.4)
                             Text(state.themeTitle)
@@ -70,7 +75,16 @@ struct BreakScreen: View {
                         .font(.body(12, weight: .bold))
                         .foregroundStyle(Palette.ink.opacity(0.7))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Button { state.capture() } label: {
+                    Button {
+                        #if canImport(UIKit)
+                        Task {
+                            let data = await camera.capturePhoto()
+                            state.capture(imageData: data)
+                        }
+                        #else
+                        state.capture()
+                        #endif
+                    } label: {
                         Circle().fill(.white)
                             .frame(width: 82, height: 82)
                             .overlay(Circle().fill(Palette.green).frame(width: 62, height: 62))
@@ -106,6 +120,29 @@ struct BreakScreen: View {
         } message: {
             Text("This ends your current walk and discards the photos you've taken.")
         }
+        #if canImport(UIKit)
+        .task { await camera.start() }
+        .onDisappear { camera.stop() }
+        #endif
+    }
+
+    @ViewBuilder private var cameraBackground: some View {
+        #if canImport(UIKit)
+        if camera.isAuthorized {
+            CameraPreview(session: camera.session)
+        } else {
+            placeholderCamera
+        }
+        #else
+        placeholderCamera
+        #endif
+    }
+
+    private var placeholderCamera: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Palette.ink.opacity(0.86))
+            MonoLabel(text: "Live camera", size: 10, color: Palette.cream.opacity(0.5), tracking: 1.6)
+        }
     }
 
     private var stackThumbnail: some View {
@@ -116,6 +153,14 @@ struct BreakScreen: View {
                 .hardShadow(Palette.ink.opacity(0.06), x: 2, y: 2)
             RoundedRectangle(cornerRadius: 3, style: .continuous)
                 .fill(state.photos.isEmpty ? Palette.ink.opacity(0.14) : state.currentHue.mixed(with: Palette.cream, percent: 82))
+                .overlay {
+                    #if canImport(UIKit)
+                    if let data = state.photos.last?.imageData, let ui = UIImage(data: data) {
+                        Image(uiImage: ui).resizable().scaledToFill()
+                    }
+                    #endif
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
                 .padding(6)
                 .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).stroke(.white, lineWidth: 6))
                 .rotationEffect(.degrees(5))

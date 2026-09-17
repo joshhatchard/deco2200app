@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Post-walk gallery: review the pile and bin duds by swiping, then shake
 /// to lay the survivors out as a collage. Shake again from either mode
@@ -143,8 +146,14 @@ private struct ReviewDeck: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .fill(Palette.tileColor(hue: state.currentHue, seed: shot.index + state.seed))
+                #if canImport(UIKit)
+                if let data = shot.imageData, let ui = UIImage(data: data) {
+                    Image(uiImage: ui).resizable().scaledToFill()
+                }
+                #endif
             }
             .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
 
             HStack(alignment: .lastTextBaseline) {
                 Text(shot.caption).font(.display(13, weight: .bold)).foregroundStyle(Palette.ink)
@@ -205,7 +214,8 @@ private struct CollageStage: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            CollageView(count: state.photos.count, seed: state.seed, hue: state.currentHue, gap: 5, animateIn: true)
+            CollageView(count: state.photos.count, seed: state.seed, hue: state.currentHue, gap: 5, animateIn: true,
+                        photos: state.photos.map(\.imageData))
                 .id(state.seed)
                 .aspectRatio(1, contentMode: .fit)
             HStack(alignment: .lastTextBaseline) {
