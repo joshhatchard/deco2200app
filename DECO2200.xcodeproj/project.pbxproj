@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FC3A9A52305CB45D003B393B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC3A9A51305CB45D003B393B /* WidgetKit.framework */; };
+		FC3A9A54305CB45D003B393B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC3A9A53305CB45D003B393B /* SwiftUI.framework */; };
+		FC3A9A63305CB45E003B393B /* WalkActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FC3A9A4F305CB45D003B393B /* WalkActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FC3A9997305B7D7F003B393B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +27,54 @@
 			remoteGlobalIDString = FC3A9988305B7D7E003B393B;
 			remoteInfo = DECO2200;
 		};
+		FC3A9A61305CB45E003B393B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FC3A9981305B7D7E003B393B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FC3A9A4E305CB45D003B393B;
+			remoteInfo = WalkActivityExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FC3A9A68305CB45E003B393B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FC3A9A63305CB45E003B393B /* WalkActivityExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		FC3A9989305B7D7E003B393B /* DECO2200.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DECO2200.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC3A9996305B7D7F003B393B /* DECO2200Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DECO2200Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC3A99A0305B7D7F003B393B /* DECO2200UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DECO2200UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC3A9A4F305CB45D003B393B /* WalkActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WalkActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC3A9A51305CB45D003B393B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		FC3A9A53305CB45D003B393B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FC3A9A64305CB45E003B393B /* Exceptions for "WalkActivity" folder in "WalkActivityExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FC3A9A4E305CB45D003B393B /* WalkActivityExtension */;
+		};
+		FC3A9AC0305CB71F003B393B /* Exceptions for "WalkActivity" folder in "DECO2200" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				WalkActivityAttributes.swift,
+			);
+			target = FC3A9988305B7D7E003B393B /* DECO2200 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FC3A998B305B7D7E003B393B /* DECO2200 */ = {
@@ -43,6 +90,15 @@
 		FC3A99A3305B7D7F003B393B /* DECO2200UITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = DECO2200UITests;
+			sourceTree = "<group>";
+		};
+		FC3A9A55305CB45D003B393B /* WalkActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FC3A9AC0305CB71F003B393B /* Exceptions for "WalkActivity" folder in "DECO2200" target */,
+				FC3A9A64305CB45E003B393B /* Exceptions for "WalkActivity" folder in "WalkActivityExtension" target */,
+			);
+			path = WalkActivity;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +125,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FC3A9A4C305CB45D003B393B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC3A9A54305CB45D003B393B /* SwiftUI.framework in Frameworks */,
+				FC3A9A52305CB45D003B393B /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +143,8 @@
 				FC3A998B305B7D7E003B393B /* DECO2200 */,
 				FC3A9999305B7D7F003B393B /* DECO2200Tests */,
 				FC3A99A3305B7D7F003B393B /* DECO2200UITests */,
+				FC3A9A55305CB45D003B393B /* WalkActivity */,
+				FC3A9A50305CB45D003B393B /* Frameworks */,
 				FC3A998A305B7D7E003B393B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +155,18 @@
 				FC3A9989305B7D7E003B393B /* DECO2200.app */,
 				FC3A9996305B7D7F003B393B /* DECO2200Tests.xctest */,
 				FC3A99A0305B7D7F003B393B /* DECO2200UITests.xctest */,
+				FC3A9A4F305CB45D003B393B /* WalkActivityExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FC3A9A50305CB45D003B393B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FC3A9A51305CB45D003B393B /* WidgetKit.framework */,
+				FC3A9A53305CB45D003B393B /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +179,12 @@
 				FC3A9985305B7D7E003B393B /* Sources */,
 				FC3A9986305B7D7E003B393B /* Frameworks */,
 				FC3A9987305B7D7E003B393B /* Resources */,
+				FC3A9A68305CB45E003B393B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				FC3A9A62305CB45E003B393B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FC3A998B305B7D7E003B393B /* DECO2200 */,
@@ -163,6 +242,28 @@
 			productReference = FC3A99A0305B7D7F003B393B /* DECO2200UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		FC3A9A4E305CB45D003B393B /* WalkActivityExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FC3A9A65305CB45E003B393B /* Build configuration list for PBXNativeTarget "WalkActivityExtension" */;
+			buildPhases = (
+				FC3A9A4B305CB45D003B393B /* Sources */,
+				FC3A9A4C305CB45D003B393B /* Frameworks */,
+				FC3A9A4D305CB45D003B393B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FC3A9A55305CB45D003B393B /* WalkActivity */,
+			);
+			name = WalkActivityExtension;
+			packageProductDependencies = (
+			);
+			productName = WalkActivityExtension;
+			productReference = FC3A9A4F305CB45D003B393B /* WalkActivityExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +285,9 @@
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = FC3A9988305B7D7E003B393B;
 					};
+					FC3A9A4E305CB45D003B393B = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = FC3A9984305B7D7E003B393B /* Build configuration list for PBXProject "DECO2200" */;
@@ -203,6 +307,7 @@
 				FC3A9988305B7D7E003B393B /* DECO2200 */,
 				FC3A9995305B7D7F003B393B /* DECO2200Tests */,
 				FC3A999F305B7D7F003B393B /* DECO2200UITests */,
+				FC3A9A4E305CB45D003B393B /* WalkActivityExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +328,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		FC3A999E305B7D7F003B393B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FC3A9A4D305CB45D003B393B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +365,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FC3A9A4B305CB45D003B393B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +384,11 @@
 			isa = PBXTargetDependency;
 			target = FC3A9988305B7D7E003B393B /* DECO2200 */;
 			targetProxy = FC3A99A1305B7D7F003B393B /* PBXContainerItemProxy */;
+		};
+		FC3A9A62305CB45E003B393B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FC3A9A4E305CB45D003B393B /* WalkActivityExtension */;
+			targetProxy = FC3A9A61305CB45E003B393B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -399,6 +523,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "ScrapMap uses the camera to take photos on your walk.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -444,6 +569,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "ScrapMap uses the camera to take photos on your walk.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -577,6 +703,71 @@
 			};
 			name = Release;
 		};
+		FC3A9A66305CB45E003B393B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XY9WT9JXD2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WalkActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WalkActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deco2200.DECO2200.WalkActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FC3A9A67305CB45E003B393B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XY9WT9JXD2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WalkActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WalkActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deco2200.DECO2200.WalkActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -612,6 +803,15 @@
 			buildConfigurations = (
 				FC3A99B1305B7D7F003B393B /* Debug */,
 				FC3A99B2305B7D7F003B393B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FC3A9A65305CB45E003B393B /* Build configuration list for PBXNativeTarget "WalkActivityExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC3A9A66305CB45E003B393B /* Debug */,
+				FC3A9A67305CB45E003B393B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

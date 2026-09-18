@@ -6,6 +6,7 @@ import UIKit
 struct BreakScreen: View {
     @ObservedObject var state: AppState
     @State private var showChangeHunt = false
+    @State private var showEmptyError = false
     #if canImport(UIKit)
     @StateObject private var camera = CameraController()
     #endif
@@ -22,18 +23,19 @@ struct BreakScreen: View {
                 }
                 .buttonStyle(.plain)
                 Text(state.formattedElapsed)
-                    .font(.mono(16, weight: .medium))
+                    .font(.mono(22, weight: .medium))
                     .foregroundStyle(Palette.cream)
-                    .padding(.horizontal, 15).padding(.vertical, 9)
+                    .padding(.horizontal, 18).padding(.vertical, 11)
                     .background(Capsule().fill(Palette.ink))
                 Spacer()
-                MonoLabel(text: "\(state.photos.count) photos", size: 12, color: Palette.ink, tracking: 0.4)
-                    .padding(.horizontal, 15).padding(.vertical, 9)
+                MonoLabel(text: "\(state.photos.count) photos", size: 15, color: Palette.ink, tracking: 0.4)
+                    .padding(.horizontal, 18).padding(.vertical, 11)
                     .background(Capsule().fill(.white))
                     .hardShadow(Palette.ink.opacity(0.05), x: 2, y: 2)
             }
             .padding(.horizontal, 20)
             .padding(.top, 56)
+            .padding(.bottom, 12)
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
@@ -112,7 +114,11 @@ struct BreakScreen: View {
             .frame(maxHeight: .infinity)
 
             Button {
-                state.finishShooting()
+                if state.photos.isEmpty {
+                    showEmptyError = true
+                } else {
+                    state.finishShooting()
+                }
             } label: {
                 Text("Done walking")
                     .font(.display(19, weight: .bold))
@@ -129,10 +135,18 @@ struct BreakScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(state.currentHue)
         .confirmationDialog("Change your hunt?", isPresented: $showChangeHunt, titleVisibility: .visible) {
-            Button("Change hunt", role: .destructive) { state.go(.theme) }
+            Button("Change hunt", role: .destructive) {
+                WalkLiveActivity.end()
+                state.go(.theme)
+            }
             Button("Keep walking", role: .cancel) { }
         } message: {
             Text("This ends your current walk and discards the photos you've taken.")
+        }
+        .alert("No photos yet", isPresented: $showEmptyError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Take at least one photo before finishing your walk.")
         }
         #if canImport(UIKit)
         .task { await camera.start() }

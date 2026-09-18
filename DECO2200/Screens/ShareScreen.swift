@@ -21,6 +21,7 @@ struct ShareScreen: View {
     @ObservedObject var state: AppState
     @Environment(\.modelContext) private var modelContext
     @State private var shareURL: URL?
+    @State private var showEmptyError = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,8 +80,12 @@ struct ShareScreen: View {
                 #endif
 
                 Button {
-                    savePost()
-                    state.post()
+                    if state.photos.isEmpty {
+                        showEmptyError = true
+                    } else {
+                        savePost()
+                        state.post()
+                    }
                 } label: {
                     Text(state.postLabel)
                         .font(.display(21, weight: .bold))
@@ -96,6 +101,11 @@ struct ShareScreen: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.shareBg)
+        .alert("No photos yet", isPresented: $showEmptyError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Take at least one photo before posting.")
+        }
         #if canImport(UIKit)
         .onAppear { prepareShareURL() }
         #endif

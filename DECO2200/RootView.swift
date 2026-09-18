@@ -6,6 +6,7 @@ import SwiftUI
 /// mirroring the prototype's simulated status-bar spacing.
 struct RootView: View {
     @StateObject private var state = AppState()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -27,7 +28,17 @@ struct RootView: View {
         .animation(.easeOut(duration: 0.3), value: state.screen)
         .ignoresSafeArea(.container, edges: .all)
         .preferredColorScheme(.light)
-        .onAppear { state.syncTimer() }
+        .onAppear {
+            state.syncTimer()
+            NudgeNotifier.requestAuthorization()
+        }
         .onChange(of: state.screen) { _ in state.syncTimer() }
+        .onChange(of: scenePhase) { phase in
+            switch phase {
+            case .background: NudgeNotifier.scheduleNudge(after: 30)   // ping ~30s after they put it down
+            case .active: NudgeNotifier.cancelNudge()                  // came back — no need to nudge
+            default: break
+            }
+        }
     }
 }

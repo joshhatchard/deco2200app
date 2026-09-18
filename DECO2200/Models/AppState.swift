@@ -82,29 +82,50 @@ final class AppState: ObservableObject {
 
     func startBreak() {
         photos = []
+        deletedShots = []
         elapsedSeconds = 0
         screen = .breakScreen
+        WalkLiveActivity.start(theme: themeTitle, hue: currentHue, startDate: Date())
     }
 
     func capture(imageData: Data? = nil) {
         photos.append(PhotoShot(index: photos.count, caption: "shot \(photos.count + 1)", imageData: imageData))
+        WalkLiveActivity.update(photoCount: photos.count)
     }
 
+    /// Caller must ensure there's at least one photo; the walk can't be
+    /// finished empty.
     func finishShooting() {
-        if photos.isEmpty {
-            photos = (0..<11).map { PhotoShot(index: $0, caption: "shot \($0 + 1)") }
-        }
+        deletedShots = []
         galleryMode = .review
         cardIndex = 0
         screen = .gallery
+        // Live Activity keeps running through review/collage — it only ends
+        // once the walk is confirmed via "Use this one" (endBreak).
     }
 
     // MARK: - Gallery review deck
 
+    private struct DeletedShot { let shot: PhotoShot; let index: Int }
+    @Published private var deletedShots: [DeletedShot] = []
+
+    var canUndo: Bool { !deletedShots.isEmpty }
+
     func deleteShot(at index: Int) {
         guard photos.indices.contains(index) else { return }
-        photos.remove(at: index)
+        let removed = photos.remove(at: index)
+        deletedShots.append(DeletedShot(shot: removed, index: index))
         cardIndex = min(cardIndex, max(0, photos.count - 1))
+        WalkLiveActivity.update(photoCount: photos.count)
+    }
+
+    /// Restore the most recently binned photo to where it was.
+    func undoDelete() {
+        guard let last = deletedShots.popLast() else { return }
+        let insertIndex = min(last.index, photos.count)
+        photos.insert(last.shot, at: insertIndex)
+        cardIndex = insertIndex
+        WalkLiveActivity.update(photoCount: photos.count)
     }
 
     func browse(by delta: Int) {
@@ -126,7 +147,10 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// "Use this one" — the walk is confirmed here, so the Live Activity ends
+    /// and disappears immediately.
     func endBreak() {
+        WalkLiveActivity.end()
         flipped = false
         screen = .congrats
     }

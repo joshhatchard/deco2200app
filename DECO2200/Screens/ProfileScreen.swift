@@ -113,7 +113,8 @@ struct ProfileScreen: View {
             Text(scrap.theme).font(.display(14, weight: .bold)).foregroundStyle(Palette.ink)
                 .lineLimit(2)
                 .padding(.top, 8)
-            Text(scrap.time).font(.mono(9.5)).foregroundStyle(Palette.mutedInk)
+            Text(scrap.date.isEmpty ? scrap.time : "\(scrap.date) · \(scrap.time)")
+                .font(.mono(9.5)).foregroundStyle(Palette.mutedInk)
         }
         .padding(EdgeInsets(top: 9, leading: 9, bottom: 11, trailing: 9))
         .frame(width: 150, alignment: .leading)
@@ -138,6 +139,10 @@ private struct SavedScrapTile: View {
     @State private var flipped = false
     @State private var confirmDelete = false
 
+    private var dateString: String {
+        saved.createdAt.formatted(.dateTime.day().month(.abbreviated))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             FlipCard(flipped: flipped) {
@@ -157,7 +162,8 @@ private struct SavedScrapTile: View {
             Text(saved.theme).font(.display(14, weight: .bold)).foregroundStyle(Palette.ink)
                 .lineLimit(2)
                 .padding(.top, 8)
-            Text(saved.timeString).font(.mono(9.5)).foregroundStyle(Palette.mutedInk)
+            Text("\(dateString) · \(saved.timeString)")
+                .font(.mono(9.5)).foregroundStyle(Palette.mutedInk)
         }
         .padding(EdgeInsets(top: 9, leading: 9, bottom: 11, trailing: 9))
         .frame(width: 150, alignment: .leading)

@@ -23,13 +23,29 @@ struct GalleryScreen: View {
                 }
                 .buttonStyle(.plain)
                 Spacer()
-                MonoLabel(text: "\(state.photos.count) shots", size: 10, color: darkInk, tracking: 1.4)
+                HStack(spacing: 10) {
+                    if state.galleryMode == .review && state.canUndo {
+                        Button { state.undoDelete() } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.uturn.backward")
+                                Text("Undo")
+                            }
+                            .font(.mono(11, weight: .medium))
+                            .foregroundStyle(Palette.ink)
+                            .padding(.horizontal, 12).padding(.vertical, 8)
+                            .background(Capsule().fill(.white))
+                            .hardShadow(Palette.ink.opacity(0.05), x: 2, y: 2)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    MonoLabel(text: "\(state.photos.count) shots", size: 10, color: darkInk, tracking: 1.4)
+                }
             }
             .padding(.horizontal, 22)
             .padding(.top, 56)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(state.galleryMode == .review ? "Your pile" : "Shaken!")
+                Text(state.galleryMode == .review ? "The photos you took" : "Shaken!")
                     .font(.display(46))
                     .foregroundStyle(Palette.ink)
                 Text(state.galleryMode == .review
@@ -43,18 +59,22 @@ struct GalleryScreen: View {
             .padding(.top, 16)
 
             if state.galleryMode == .review {
-                ReviewDeck(state: state)
-                VStack(spacing: 9) {
-                    Text("Swipe up to delete\nSwipe left / right to view photos")
-                        .font(.mono(9.5))
-                        .tracking(1)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(darkInk)
-                    Button { state.shuffle() } label: { shakeButton("Shake to collage") }
-                        .buttonStyle(.plain)
+                if state.photos.isEmpty {
+                    emptyPile
+                } else {
+                    ReviewDeck(state: state)
+                    VStack(spacing: 9) {
+                        Text("Swipe up to delete\nSwipe left / right to view photos")
+                            .font(.mono(9.5))
+                            .tracking(1)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(darkInk)
+                        Button { state.shuffle() } label: { shakeButton("Shake to collage") }
+                            .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 22)
+                    .padding(.bottom, 38)
                 }
-                .padding(.horizontal, 22)
-                .padding(.bottom, 38)
             } else {
                 CollageStage(state: state)
                 VStack(spacing: 10) {
@@ -97,6 +117,26 @@ struct GalleryScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.galleryBg)
         .onShake { state.shuffle() }
+    }
+
+    private var emptyPile: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: "photo.on.rectangle")
+                .font(.system(size: 34, weight: .regular))
+                .foregroundStyle(darkInk.opacity(0.6))
+            Text("Your pile is empty")
+                .font(.display(20, weight: .bold))
+                .foregroundStyle(Palette.ink)
+            Text("Head back and snap a few photos first.")
+                .font(.body(13, weight: .semibold))
+                .foregroundStyle(darkInk)
+                .multilineTextAlignment(.center)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 22)
+        .padding(.bottom, 38)
     }
 
     private func shakeButton(_ label: String) -> some View {

@@ -16,6 +16,8 @@ struct ScrapPost: Identifiable {
     var comments: Int = 0
     var liked: Bool = false
     var flipped: Bool = false
+    /// Display date for the scrapbook (e.g. "12 Sep").
+    var date: String = ""
 }
 
 /// A single photo taken during a break. `index` is assigned at capture
@@ -42,8 +44,8 @@ enum SeedData {
     /// Scrapbook history that predates this session — profile-only, not
     /// part of the shared feed.
     static let profileHistory: [ScrapPost] = [
-        ScrapPost(name: "Maya Okonkwo", meta: "", theme: "10 round things", seed: 5, time: "00:18:40", count: 9, hue: Palette.butter),
-        ScrapPost(name: "Maya Okonkwo", meta: "", theme: "Doorways", seed: 11, time: "00:32:35", count: 9, hue: Palette.sky),
-        ScrapPost(name: "Maya Okonkwo", meta: "", theme: "Something red", seed: 2, time: "00:26:04", count: 9, hue: Palette.coral)
+        ScrapPost(name: "Maya Okonkwo", meta: "", theme: "10 round things", seed: 5, time: "00:18:40", count: 9, hue: Palette.butter, date: "12 Sep"),
+        ScrapPost(name: "Maya Okonkwo", meta: "", theme: "Doorways", seed: 11, time: "00:32:35", count: 9, hue: Palette.sky, date: "8 Sep"),
+        ScrapPost(name: "Maya Okonkwo", meta: "", theme: "Something red", seed: 2, time: "00:26:04", count: 9, hue: Palette.coral, date: "2 Sep")
     ]
 }

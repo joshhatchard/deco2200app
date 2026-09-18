@@ -46,14 +46,17 @@ struct HomeScreen: View {
             Spacer()
             HStack(spacing: 8) {
                 circleIcon { Text("+").font(.display(22)).foregroundStyle(Palette.ink) }
-                circleIcon {
-                    ZStack(alignment: .topTrailing) {
-                        RoundedRectangle(cornerRadius: 4).fill(Palette.ink).frame(width: 13, height: 13)
-                        Circle().fill(Palette.green).frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(Palette.homeBg, lineWidth: 2))
-                            .offset(x: 4, y: -4)
+                Button { NudgeNotifier.scheduleNudge(after: 5) } label: {
+                    circleIcon {
+                        ZStack(alignment: .topTrailing) {
+                            RoundedRectangle(cornerRadius: 4).fill(Palette.ink).frame(width: 13, height: 13)
+                            Circle().fill(Palette.green).frame(width: 10, height: 10)
+                                .overlay(Circle().stroke(Palette.homeBg, lineWidth: 2))
+                                .offset(x: 4, y: -4)
+                        }
                     }
                 }
+                .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 20)
