@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ScrapMap — Interactive Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=DM+Mono:wght@400;500&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#17201C; --cream:#FFF7F0;
+  --butter:#FFD84D; --coral:#FF5A4E; --sky:#4EA8FF; --lilac:#B57BFF; --green:#00D274;
+  --homeBg:#E9F5EE; --themeBg:#F1EAFF; --galleryBg:#4EA8FF; --shareBg:#FFEDE9; --profileBg:#F1EAFF; --appBg:#DDEEE3;
+  --muted:#5B6B62;
+  --display:'Baloo 2', system-ui, sans-serif;
+  --mono:'DM Mono', ui-monospace, monospace;
+  --body:'Nunito', system-ui, sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--body);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #ffffff 0%, transparent 60%),
+    linear-gradient(160deg,#dfe9f5,#efe4fb 55%,#ffe9e3);
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ---- Toolbar ---- */
+.toolbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:12px 20px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(23,32,28,.08);
+}
+.brand{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.3px}
+.brand span{color:var(--green)}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.spacer{flex:1}
+.seg{display:flex;background:rgba(23,32,28,.06);border-radius:999px;padding:3px}
+.seg button{
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  border:0;background:transparent;color:var(--muted);padding:7px 14px;border-radius:999px;cursor:pointer;
+}
+.seg button.on{background:var(--ink);color:var(--cream)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;
+  border:1.5px solid rgba(23,32,28,.14);background:#fff;color:var(--ink);
+  padding:6px 11px;border-radius:999px;cursor:pointer;transition:.15s;
+}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.iconbtn{
+  border:1.5px solid rgba(23,32,28,.14);background:#fff;border-radius:999px;
+  padding:7px 13px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--ink)
+}
+.iconbtn:disabled{opacity:.35;cursor:default}
+
+/* ---- Stage / phone ---- */
+main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:34px 20px 60px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px}
+.phone{
+  position:relative;width:390px;height:844px;border-radius:52px;
+  background:#0c110f;padding:13px;
+  box-shadow:0 40px 80px -20px rgba(23,32,28,.5), 0 0 0 2px rgba(255,255,255,.04) inset;
+}
+.viewport{
+  position:relative;width:100%;height:100%;border-radius:40px;overflow:hidden;background:#fff;
+}
+.statusbar{
+  position:absolute;top:0;left:0;right:0;height:52px;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;padding:16px 30px 0;
+  font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);pointer-events:none;
+}
+.statusbar .dots{display:flex;gap:5px;align-items:center}
+.statusbar .bar{width:17px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative}
+.statusbar .bar::after{content:"";position:absolute;inset:1.5px;right:5px;background:var(--ink);border-radius:1px}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden}
+.screen::-webkit-scrollbar{display:none}
+.screen{scrollbar-width:none}
+.anim{animation:enter .32s ease-out}
+@keyframes enter{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.hint{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+
+/* ---- shared atoms ---- */
+.mono{font-family:var(--mono);text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)}
+.disp{font-family:var(--display);font-weight:800;color:var(--ink);line-height:1.02}
+.bodytx{font-family:var(--body);font-weight:600}
+[data-goto]{cursor:pointer}
+.hs{box-shadow:4px 4px 0 rgba(23,32,28,.06)}
+.hs-sm{box-shadow:2px 2px 0 rgba(23,32,28,.05)}
+.hs-3{box-shadow:3px 3px 0 rgba(23,32,28,.05)}
+.card{background:#fff;border-radius:24px}
+.circle-btn{width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--ink);box-shadow:2px 2px 0 rgba(23,32,28,.05)}
+.capsule{border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800}
+.pill{border-radius:999px;padding:6px 11px;font-family:var(--mono);font-size:10px;letter-spacing:.6px;text-transform:uppercase}
+
+/* collage */
+.collage{display:flex;flex-direction:column;gap:4px;width:100%;height:100%}
+.crow{display:flex;gap:4px;flex-basis:0;min-height:0}
+.ctile{flex:1;border-radius:3px}
+
+/* blob */
+.blob{position:relative;border-radius:55% 49% 51% 46% / 55% 56% 44% 45%;display:inline-block}
+.blob .eye{position:absolute;background:var(--ink);border-radius:50%}
+.blob .smile{position:absolute;border:solid var(--ink);border-width:0 0 3px 0;border-radius:0 0 60% 60% / 0 0 100% 100%}
+.blob .ear{position:absolute;border-radius:50%;z-index:-1}
+
+/* radio */
+.radio{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(23,32,28,.25);flex:none}
+.radio.on{background:var(--ink);border-color:var(--ink)}
+
+/* tab bar */
+.tabbar{
+  position:sticky;bottom:0;margin:0 20px 10px;height:62px;border-radius:31px;background:var(--ink);
+  display:flex;align-items:center;justify-content:space-between;padding:0 34px;
+  box-shadow:0 8px 24px rgba(23,32,28,.18);
+}
+.tabbar .t{display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,247,240,.6);cursor:pointer}
+.tabbar .t.on{color:var(--cream)}
+.tabbar .t .ic{font-size:19px;line-height:1}
+.tabbar .t .lb{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.tabbar .plus{
+  width:66px;height:66px;border-radius:50%;background:var(--green);color:var(--ink);
+  font-family:var(--display);font-weight:800;font-size:34px;display:flex;align-items:center;justify-content:center;
+  transform:translateY(-24px);border:5px solid var(--bg,#fff);box-shadow:0 6px 14px rgba(0,210,116,.3);cursor:pointer;
+}
+
+/* ---- Overview board ---- */
+.board{display:none;flex-wrap:wrap;gap:44px 40px;justify-content:center;padding:20px 30px 80px;max-width:1500px;margin:0 auto}
+.board.on{display:flex}
+.stage.off{display:none}
+.mini{display:flex;flex-direction:column;align-items:center;gap:12px;width:280px}
+.mini .frame{
+  width:270px;height:585px;border-radius:34px;overflow:hidden;position:relative;background:#000;
+  box-shadow:0 22px 44px -14px rgba(23,32,28,.4);cursor:pointer;border:6px solid #0c110f;
+}
+.mini .frame .scaler{position:absolute;top:0;left:0;width:390px;height:844px;transform:scale(.6564);transform-origin:top left;pointer-events:none}
+.mini .frame .scaler .viewport{border-radius:0}
+.mini .cap{text-align:center}
+.mini .cap h4{font-family:var(--display);font-weight:800;margin:0;font-size:16px}
+.mini .flow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:7px}
+.mini .flow .arw{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;
+  background:rgba(23,32,28,.07);color:var(--ink);padding:4px 9px;border-radius:999px;cursor:pointer
+}
+.mini .flow .arw:hover{background:var(--ink);color:var(--cream)}
+.legend{width:100%;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="brand">Scrap<span>Map</span></div>
+  <div class="tag">Interactive Prototype</div>
+  <div class="spacer"></div>
+  <button class="iconbtn" id="backBtn" title="Back">‹ Back</button>
+  <div class="seg" id="modeSeg">
+    <button data-mode="play" class="on">Play</button>
+    <button data-mode="board">Flow board</button>
+  </div>
+</div>
+
+<div class="chips" id="screenChips" style="padding:12px 20px 0;justify-content:center"></div>
+
+<main>
+  <div class="stage" id="stage">
+    <div class="phone" id="phone">
+      <div class="viewport">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="dots">›)) <span class="bar"></span></span>
+        </div>
+        <div class="screen" id="screen"></div>
+      </div>
+    </div>
+    <div class="hint" id="playHint">Tap buttons, cards & hotspots to move through the flow</div>
+  </div>
+
+  <div class="board" id="board"></div>
+</main>
+
+<script>
+/* ============================ helpers ============================ */
+const H = (s)=>s; // identity, for readability
+
+function countdownToMidnight(){
+  const now=new Date(); const mid=new Date(now); mid.setHours(24,0,0,0);
+  const mins=Math.max(0,Math.floor((mid-now)/60000));
+  return `${Math.floor(mins/60)}h ${String(mins%60).padStart(2,'0')}m`;
+}
+
+/* collageRows — direct port of CollageLayout.swift */
+function collageRows(n, seed){
+  if(n<=0) return [];
+  const rows=Math.max(1,Math.min(6,Math.round(Math.sqrt(n*0.85))));
+  const base=Math.floor(n/rows), extra=n%rows;
+  let counts=[]; for(let r=0;r<rows;r++) counts.push(base+(r<extra?1:0));
+  for(let r=0;r<rows-1;r++){ if((seed+r)%3===0){ if(counts[r]>1 && counts[r+1]<6){counts[r]--;counts[r+1]++;} } }
+  const live=counts.filter(c=>c>0);
+  const total=live.reduce((s,c)=>s+1/c,0);
+  let k=0;
+  return live.map(c=>{const idx=[];for(let i=0;i<c;i++)idx.push(k++);return {indices:idx,grow:(1/c)/total};});
+}
+const TILEMIX=[100,72,50,88,36,62,96,44,78];
+function collageHTML(n, seed, hue){
+  const rows=collageRows(n,seed); let idx=0;
+  return `<div class="collage">`+rows.map(r=>
+    `<div class="crow" style="flex-grow:${r.grow}">`+r.indices.map(()=>{
+      const pct=TILEMIX[((idx%9)+9)%9]; idx++;
+      return `<div class="ctile" style="background:color-mix(in oklab, ${hue} ${pct}%, var(--cream))"></div>`;
+    }).join('')+`</div>`
+  ).join('')+`</div>`;
+}
+
+/* blob mascot */
+function blob(size,color,opts={}){
+  const {ears=false,smile=false}=opts;
+  const eye=Math.max(4,size*0.075), eyeTop=size*0.42, dx=size*0.19;
+  const sw=size*0.34, sh=size*0.16, sTop=eyeTop+eye+size*0.05;
+  const ear=size*0.28;
+  return `<div class="blob" style="width:${size}px;height:${size}px;background:${color}">
+    ${ears?`<span class="ear" style="background:${color};width:${ear}px;height:${ear}px;left:${size*0.1}px;top:${-ear*0.42}px"></span>
+           <span class="ear" style="background:${color};width:${ear}px;height:${ear}px;right:${size*0.1}px;top:${-ear*0.42}px"></span>`:''}
+    <span class="eye" style="width:${eye}px;height:${eye}px;top:${eyeTop}px;left:calc(50% - ${dx+eye/2}px)"></span>
+    <span class="eye" style="width:${eye}px;height:${eye}px;top:${eyeTop}px;left:calc(50% + ${dx-eye/2}px)"></span>
+    ${smile?`<span class="smile" style="width:${sw}px;height:${sh}px;top:${sTop}px;left:calc(50% - ${sw/2}px)"></span>`:''}
+  </div>`;
+}
+
+function backBtn(to){
+  return `<div data-goto="${to}" class="circle-btn" style="font-size:16px">‹</div>`;
+}
+const SAMPLE=(hue='var(--green)',n=9,seed=1)=>collageHTML(n,seed,hue);
+
+/* ============================ screens ============================ */
+const S = {};
+
+S.home = ()=>`
+<div style="background:var(--homeBg);min-height:100%;display:flex;flex-direction:column;--bg:var(--homeBg)">
+  <div style="padding:56px 20px 4px;display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div class="disp" style="font-size:30px">Scrap<span style="color:var(--green)">Map</span></div>
+      <div class="mono" style="font-size:10px;margin-top:5px">Sitting 1h 52m</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="circle-btn" style="font-size:22px;font-family:var(--display)" data-goto="theme">+</div>
+      <div class="circle-btn" data-goto="nudge" title="Preview nudge">
+        <div style="position:relative;width:13px;height:13px;background:var(--ink);border-radius:4px">
+          <span style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--homeBg)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px">
+    <!-- hunt hero -->
+    <div data-goto="theme" style="position:relative;background:var(--green);border-radius:26px;padding:20px 18px 18px;overflow:hidden" class="hs">
+      <div style="position:absolute;top:-12px;right:-6px">${blob(64,'rgba(255,255,255,.28)',{ears:true,smile:true})}</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:var(--cream);border-radius:999px;padding:7px 12px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px">✦ Daily Quest</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--ink);animation:pulse 1.8s infinite"></span>
+        <span class="mono" style="color:var(--ink);font-size:9.5px;letter-spacing:1.5px">Gone in ${countdownToMidnight()}</span>
+      </div>
+      <div class="disp" style="font-size:44px;margin-top:6px">Testing Fair</div>
+      <div class="bodytx" style="font-weight:800;font-size:13px;margin-top:6px">3,241 out on it today.</div>
+      <div class="capsule" style="background:var(--ink);color:var(--cream);height:54px;margin-top:16px;gap:8px;font-size:19px">Start hunting <span style="font-family:var(--mono);font-size:15px">›</span></div>
+    </div>
+
+    <!-- streak -->
+    <div class="card hs-3" style="padding:16px;margin-top:22px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <span class="mono" style="font-size:9.5px">Streak</span>
+        <span class="pill" style="background:rgba(23,32,28,.08);color:var(--ink)">Best 21</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span class="disp" style="font-size:58px">13</span>
+        <span class="bodytx" style="font-weight:800;font-size:12.5px">days</span>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:6px">
+        ${['#FFD84D','#4EA8FF','#FF5A4E','#00D274','#B57BFF'].map((c,i)=>`
+          <div style="flex:1;text-align:center">
+            <div style="aspect-ratio:1;border-radius:11px;background:${c};display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--ink)">✓</div>
+            <div class="mono" style="font-size:10px;color:var(--ink);margin-top:6px">${'MTWTF'[i]}</div>
+          </div>`).join('')}
+        <div style="flex:1;text-align:center">
+          <div style="aspect-ratio:1;border-radius:11px;border:2.5px solid var(--ink)"></div>
+          <div class="mono" style="font-size:10px;color:var(--ink);margin-top:6px">S</div>
+        </div>
+        <div style="flex:1;text-align:center">
+          <div style="aspect-ratio:1;border-radius:11px;background:rgba(23,32,28,.08)"></div>
+          <div class="mono" style="font-size:10px;margin-top:6px">S</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- section rule -->
+    <div style="display:flex;align-items:center;gap:9px;margin:26px 0 14px">
+      <span class="disp" style="font-size:20px;font-weight:700">Fresh scraps</span>
+      <span style="flex:1;height:3px;border-radius:9px;background:rgba(23,32,28,.12)"></span>
+    </div>
+
+    ${feedCard('Round things','07:12','9 photos',24,'var(--butter)',9,4,'Golden hour did all the work here.')}
+    <div style="height:30px"></div>
+    ${feedCard('Something red','05:48','6 photos',12,'var(--coral)',6,7,'')}
+  </div>
+
+  ${tabbar('feed')}
+</div>
+<style>@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}</style>`;
+
+function feedCard(theme,time,count,likes,hue,n,seed,caption){
+  return `
+  <div>
+    ${polaroid(hue, `
+      <div style="display:flex;flex-direction:column;height:100%">
+        <div style="flex:1;border-radius:5px;overflow:hidden">${collageHTML(n,seed,hue)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:12px">
+          <span class="disp" style="font-size:19px;font-weight:700">${theme}</span>
+          <span class="mono" style="font-size:9.5px">Tap = stats</span>
+        </div>
+      </div>`)}
+    <div style="display:flex;align-items:center;gap:13px;margin-top:12px">
+      <span style="width:34px;height:34px;border-radius:50%;background:${hue}"></span>
+      <div style="flex:1">
+        <div class="bodytx" style="font-weight:800;font-size:13.5px">You</div>
+        <div class="mono" style="font-size:9.5px;letter-spacing:.4px">${time} · ${count}</div>
+      </div>
+      <span class="pill" style="background:rgba(23,32,28,.06);color:var(--ink);display:flex;gap:6px;align-items:center"><span style="color:var(--coral)">♥</span>${likes}</span>
+    </div>
+    ${caption?`<div class="bodytx" style="font-size:13px;margin-top:8px">${caption}</div>`:''}
+  </div>`;
+}
+
+/* polaroid frame: white padded card w/ pin */
+function polaroid(hue, inner){
+  return `<div style="position:relative;background:#fff;border-radius:8px;padding:12px 12px 16px;box-shadow:4px 6px 0 rgba(23,32,28,.06);transform:rotate(-1deg)">
+    <span style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:${hue};box-shadow:0 1px 0 rgba(23,32,28,.1)"></span>
+    <div style="aspect-ratio:.92">${inner}</div>
+  </div>`;
+}
+
+S.nudge = ()=>`
+<div style="background:var(--butter);min-height:100%;display:flex;flex-direction:column;--gold:#6B5A17">
+  <div style="padding:60px 26px 0">
+    <div class="mono" style="font-size:10px;letter-spacing:1.8px;color:#6B5A17">Sitting 1h 52m</div>
+    <div class="disp" style="font-size:52px;margin-top:10px">Go find<br>something.</div>
+    <div class="bodytx" style="font-size:15.5px;margin-top:14px;max-width:280px;line-height:1.5">Today everyone’s hunting “Testing Fair”. Shoot as many as you like.</div>
+  </div>
+  <div style="flex:1;position:relative;display:flex;align-items:center;justify-content:center">
+    <span style="position:absolute;left:40px;top:110px;width:20px;height:20px;background:var(--green);border-radius:5px;transform:rotate(22deg)"></span>
+    <span style="position:absolute;right:40px;top:80px;width:26px;height:26px;background:var(--sky);border-radius:50%"></span>
+    <span style="position:absolute;right:70px;top:200px;width:14px;height:14px;background:var(--lilac);border-radius:4px;transform:rotate(-18deg)"></span>
+    <div style="animation:bob 3s ease-in-out infinite">${blob(300,'var(--coral)',{ears:true,smile:true})}</div>
+  </div>
+  <div style="padding:0 26px 40px">
+    <div data-goto="theme" class="capsule" style="background:var(--ink);color:var(--cream);height:62px;font-size:22px;box-shadow:0 3px 0 rgba(23,32,28,.08)">Let’s go outside</div>
+    <div data-goto="home" style="text-align:center;padding:16px 0;font-family:var(--mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#6B5A17;cursor:pointer">Snooze 10 min</div>
+  </div>
+</div>
+<style>@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}</style>`;
+
+S.theme = ()=>{
+  const hues={daily:'var(--green)',round:'var(--butter)',red:'var(--coral)',texture:'var(--sky)',custom:'var(--lilac)'};
+  const sel=state.themeId, title=state.themeTitle();
+  const fs=[
+    {id:'round',t:'Round things',b:'Wheels, coins, manhole covers, the moon if you are lucky.'},
+    {id:'red',t:'Something red',b:'One colour, all walk. Harder than it sounds after shot four.'},
+    {id:'texture',t:'Textures',b:'Fun and interesting textures on materials or surfaces.'},
+  ];
+  const radio=(on)=>`<span class="radio ${on?'on':''}"></span>`;
+  return `
+  <div style="background:var(--themeBg);min-height:100%;display:flex;flex-direction:column">
+    <div style="padding:52px 22px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        ${backBtn('home')}
+        <span class="mono" style="font-size:10px">Pick your hunt</span>
+      </div>
+      <div class="disp" style="font-size:32px;margin-top:8px">Snap your walk</div>
+    </div>
+    <div style="padding:10px 22px 0;flex:1">
+      <!-- daily -->
+      <div data-pick="daily" style="cursor:pointer;padding:20px;border-radius:28px;background:${sel==='daily'?'var(--green)':'#fff'};box-shadow:${sel==='daily'?'4px 4px':'3px 3px'} 0 rgba(23,32,28,.06)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="mono" style="font-size:9.5px;color:var(--ink);letter-spacing:1.6px">Today’s hunt · everyone</span>
+          ${radio(sel==='daily')}
+        </div>
+        <div class="disp" style="font-size:30px;font-weight:700;margin-top:6px">Testing Fair</div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <span class="pill" style="background:rgba(23,32,28,.14);color:var(--ink)">3,241 out today</span>
+          <span class="pill" style="background:var(--ink);color:var(--cream)">Gone in ${countdownToMidnight()}</span>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;margin:22px 0 14px">
+        <span class="disp" style="font-size:19px;font-weight:700">Or freestyle it</span>
+        <span style="flex:1;height:3px;border-radius:9px;background:rgba(23,32,28,.12)"></span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${fs.map(f=>{const on=sel===f.id;return `
+          <div data-pick="${f.id}" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px;border-radius:26px;background:${on?hues[f.id]:'#fff'};box-shadow:${on?'4px 4px':'3px 3px'} 0 rgba(23,32,28,.06);transform:rotate(${on?'-1.6deg':'0'})">
+            ${blob(54, on?'rgba(255,255,255,.62)':hues[f.id], {smile:true})}
+            <div style="flex:1">
+              <div class="disp" style="font-size:24px;font-weight:700">${f.t}</div>
+              <div class="bodytx" style="font-size:13px;color:rgba(23,32,28,.78);line-height:1.35">${f.b}</div>
+            </div>
+            ${radio(on)}
+          </div>`;}).join('')}
+        <div data-pick="custom" style="cursor:pointer;padding:18px;border-radius:26px;background:${sel==='custom'?'var(--lilac)':'#fff'};border:2.5px solid ${sel==='custom'?'transparent':'rgba(23,32,28,.12)'};font-family:var(--display);font-weight:700;font-size:22px;color:${sel==='custom'?'var(--ink)':'rgba(23,32,28,.4)'}">or write your own…</div>
+      </div>
+    </div>
+    <div style="padding:20px 22px 38px">
+      <div data-goto="break" class="capsule" style="background:${hues[sel]};color:var(--ink);height:62px;font-size:22px;box-shadow:0 3px 0 rgba(23,32,28,.07)">Start · ${title}</div>
+    </div>
+  </div>`;
+};
+
+S.break = ()=>{
+  const hue=state.hue();
+  return `
+  <div style="background:${hue};min-height:100%;display:flex;flex-direction:column">
+    <div style="padding:56px 20px 12px;display:flex;align-items:center;gap:12px">
+      ${backBtn('theme')}
+      <span class="capsule" style="background:var(--ink);color:var(--cream);font-family:var(--mono);font-size:22px;padding:11px 18px">00:${String(state.photos).padStart(2,'0')}<span style="opacity:0"></span></span>
+      <span style="flex:1"></span>
+      <span class="pill" style="background:#fff;color:var(--ink);font-size:15px;padding:11px 18px;box-shadow:2px 2px 0 rgba(23,32,28,.05)">${state.photos} photos</span>
+    </div>
+
+    <div style="flex:1;padding:0 20px;display:flex;flex-direction:column">
+      <div style="flex:1;background:#fff;border-radius:8px;padding:12px 12px 20px;box-shadow:4px 4px 0 rgba(23,32,28,.05);transform:rotate(-1.2deg);display:flex;flex-direction:column">
+        <div style="flex:1;position:relative;border-radius:4px;overflow:hidden;background:rgba(23,32,28,.86);display:flex;align-items:center;justify-content:center;min-height:340px">
+          <span class="mono" style="font-size:10px;color:rgba(255,247,240,.5);letter-spacing:1.6px">Live camera</span>
+          <div style="position:absolute;left:14px;bottom:14px;background:var(--butter);border-radius:16px;padding:12px 14px;transform:rotate(1.4deg);box-shadow:3px 3px 0 rgba(23,32,28,.07)">
+            <div class="mono" style="font-size:9px;color:#6B5A17;letter-spacing:1.4px">${state.huntKind()}</div>
+            <div class="disp" style="font-size:24px;font-weight:700">${state.themeTitle()}</div>
+          </div>
+        </div>
+        <div class="disp" style="font-size:15px;font-weight:700;color:var(--muted);margin-top:9px">Shoot as many as you like</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;padding:18px 0">
+        <div data-goto="gallery" style="position:relative;width:64px;height:64px;cursor:pointer">
+          <div style="position:absolute;inset:0;background:#fff;border-radius:5px;transform:rotate(-10deg);box-shadow:2px 2px 0 rgba(23,32,28,.06)"></div>
+          <div style="position:absolute;inset:0;background:#fff;border-radius:5px;transform:rotate(5deg);box-shadow:2px 2px 0 rgba(23,32,28,.06);padding:6px"><div style="width:100%;height:100%;border-radius:3px;background:${state.photos?`color-mix(in oklab, ${hue} 82%, var(--cream))`:'rgba(23,32,28,.14)'}"></div></div>
+        </div>
+        <div class="bodytx" style="flex:1;font-weight:700;font-size:12px;color:rgba(23,32,28,.7)">${state.photos?'Tap the pile to review and bin any duds':'Tap the big button to start your roll'}</div>
+        <div data-shoot style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 0 rgba(23,32,28,.06)"><span style="width:62px;height:62px;border-radius:50%;background:var(--green)"></span></div>
+      </div>
+    </div>
+
+    <div style="padding:0 20px 38px">
+      <div data-goto="gallery" class="capsule" style="background:var(--ink);color:var(--cream);height:56px;font-size:19px;font-weight:700">Done walking</div>
+    </div>
+  </div>`;
+};
+
+S.gallery = ()=>{
+  const hue=state.hue(), dark='#123A63';
+  if(state.galleryMode==='review'){
+    return `
+    <div style="background:var(--galleryBg);min-height:100%;display:flex;flex-direction:column">
+      <div style="padding:56px 22px 0;display:flex;align-items:center;justify-content:space-between">
+        ${backBtn('break')}
+        <span class="mono" style="font-size:10px;color:${dark};letter-spacing:1.4px">9 shots</span>
+      </div>
+      <div style="padding:16px 22px 0">
+        <div class="disp" style="font-size:46px">The photos<br>you took</div>
+        <div class="bodytx" style="font-weight:700;font-size:14px;color:${dark};margin-top:6px">Bin the duds, then shake to lay them out.</div>
+      </div>
+      <div style="flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:20px 0">
+        ${[2,1,0].map(d=>`
+          <div style="position:absolute;width:200px;background:#fff;border-radius:5px;padding:11px 11px 8px;box-shadow:4px 4px 0 rgba(23,32,28,${.07-d*0.02});transform:translate(${d*6}px,${d*5}px) rotate(${d*2.5}deg) scale(${1-d*0.04});z-index:${10-d}">
+            <div style="aspect-ratio:1;border-radius:3px;background:color-mix(in oklab, ${hue} ${TILEMIX[d]}%, var(--cream))"></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:9px">
+              <span class="disp" style="font-size:13px;font-weight:700">shot ${3-d}</span>
+              <span class="mono" style="font-size:10px;color:var(--muted)">${3-d} / 9</span>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="padding:0 22px 38px;text-align:center">
+        <div class="mono" style="font-size:9.5px;color:${dark};line-height:1.6;margin-bottom:9px">Swipe up to delete<br>Swipe left / right to view photos</div>
+        <div data-shake class="capsule" style="background:var(--butter);color:var(--ink);height:60px;font-size:24px;box-shadow:0 3px 0 rgba(23,32,28,.07)">Shake to collage</div>
+      </div>
+    </div>`;
+  }
+  return `
+  <div style="background:var(--galleryBg);min-height:100%;display:flex;flex-direction:column">
+    <div style="padding:56px 22px 0;display:flex;align-items:center;justify-content:space-between">
+      ${backBtn('break')}
+      <span class="mono" style="font-size:10px;color:${dark};letter-spacing:1.4px">9 shots</span>
+    </div>
+    <div style="padding:16px 22px 0">
+      <div class="disp" style="font-size:46px">Shaken!</div>
+      <div class="bodytx" style="font-weight:700;font-size:14px;color:${dark};margin-top:6px">Not keen? Shake again for a new arrangement.</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px">
+      <div style="width:300px;background:#fff;border-radius:6px;padding:12px 12px 14px;box-shadow:4px 4px 0 rgba(23,32,28,.07);transform:rotate(-1.4deg)">
+        <div style="aspect-ratio:1">${collageHTML(9,state.seed,hue)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:10px">
+          <span class="disp" style="font-size:15px">${state.themeTitle()}</span>
+          <span class="mono" style="font-size:10px;color:var(--muted)">9 photos</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 22px 38px">
+      <div class="mono" style="font-size:9.5px;color:${dark};text-align:center;margin-bottom:10px">Shake your phone to reshuffle</div>
+      <div data-goto="postDetails" class="capsule" style="background:var(--ink);color:var(--cream);height:60px;font-size:23px;margin-bottom:10px">Use this one</div>
+      <div data-shake class="capsule" style="background:rgba(23,32,28,.08);color:var(--ink);height:60px;font-size:17px;font-weight:700;border:1.5px solid rgba(23,32,28,.18);cursor:pointer">↻ Shake again</div>
+      <div data-review style="text-align:center;padding:14px 0;font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:${dark};cursor:pointer">Back to photos</div>
+    </div>
+  </div>`;
+};
+
+S.postDetails = ()=>`
+<div style="background:var(--shareBg);min-height:100%;display:flex;flex-direction:column">
+  <div style="padding:56px 22px 0">${backBtn('gallery')}</div>
+  <div style="flex:1;padding:14px 22px 0">
+    <div class="disp" style="font-size:40px">Anything to say?</div>
+    <div class="bodytx" style="font-size:14px;color:var(--muted);margin-top:6px">Add a caption or a voice memo</div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin:26px 0 10px">
+      <span class="disp" style="font-size:18px;font-weight:700">Caption</span>
+      <span class="mono" style="font-size:9px">optional</span>
+    </div>
+    <div style="background:#fff;border-radius:16px;border:2px solid rgba(23,32,28,.12);padding:14px;min-height:74px;color:rgba(23,32,28,.35);font-family:var(--body);font-weight:600;font-size:14px">Say something about your walk…</div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin:26px 0 10px">
+      <span class="disp" style="font-size:18px;font-weight:700">Voice memo</span>
+      <span class="mono" style="font-size:9px">optional</span>
+    </div>
+    <div style="background:#fff;border-radius:16px;border:2px solid rgba(23,32,28,.12);padding:14px;display:flex;align-items:center;gap:10px;font-family:var(--body);font-weight:700;font-size:13.5px">🎙 Record a voice memo</div>
+  </div>
+  <div style="padding:10px 22px 38px">
+    <div data-goto="congrats" class="capsule" style="background:var(--ink);color:var(--cream);height:60px;font-size:21px;font-weight:700">Continue</div>
+  </div>
+</div>`;
+
+S.congrats = ()=>{
+  const hue=state.hue();
+  const front=`
+    <div style="position:relative;background:#fff;border-radius:8px;padding:14px;height:100%;box-shadow:4px 4px 0 rgba(23,32,28,.06);display:flex;flex-direction:column">
+      <div style="position:absolute;top:-12px;right:-8px;display:flex;gap:5px;align-items:center;background:var(--butter);border:2px solid var(--ink);border-radius:999px;padding:7px 12px;font-family:var(--display);font-weight:800;font-size:13px;transform:rotate(8deg);box-shadow:2px 2px 0 rgba(23,32,28,.18)">👆 flip me!</div>
+      <div style="flex:1;border-radius:5px;overflow:hidden">${collageHTML(9,state.seed,hue)}</div>
+      <div class="disp" style="font-size:21px;margin-top:14px">${state.themeTitle()}</div>
+    </div>`;
+  const back=`
+    <div style="background:${hue};border-radius:8px;padding:18px;height:100%;box-shadow:4px 4px 0 rgba(23,32,28,.06);display:flex;flex-direction:column">
+      <span class="mono" style="font-size:10px;color:var(--ink);letter-spacing:1.6px">Break time</span>
+      <div style="font-family:var(--mono);font-size:46px;color:var(--ink)">00:${String(state.photos||9).padStart(2,'0')}</div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <div style="width:104px;background:rgba(255,255,255,.6);border-radius:20px;padding:14px">
+          <div class="disp" style="font-size:40px">9</div><div class="mono" style="font-size:9.5px;color:var(--ink)">Photos</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,.6);border-radius:20px;padding:14px">
+          <div class="mono" style="font-size:9.5px;color:var(--ink)">Route</div>
+          <div class="disp" style="font-size:30px;margin-top:2px">1.4 km</div>
+        </div>
+      </div>
+      <span style="flex:1"></span>
+      <div class="mono" style="font-size:9.5px;color:var(--ink);text-align:right">Flip back</div>
+    </div>`;
+  return `
+  <div style="background:var(--homeBg);min-height:100%;position:relative;display:flex;flex-direction:column">
+    <span style="position:absolute;left:40px;top:130px;width:22px;height:22px;background:var(--butter);border-radius:6px;transform:rotate(24deg)"></span>
+    <span style="position:absolute;right:50px;top:108px;width:16px;height:16px;background:var(--lilac);border-radius:50%"></span>
+    <span style="position:absolute;right:30px;top:220px;width:26px;height:26px;background:var(--sky);border-radius:8px;transform:rotate(-16deg)"></span>
+    <div style="padding:56px 24px 0">
+      <span class="mono" style="font-size:10px;letter-spacing:1.6px">Hunt · ${state.themeTitle()}</span>
+      <div class="disp" style="font-size:42px;margin-top:6px">Nice haul.</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div data-flip style="width:100%;max-width:322px;aspect-ratio:.84;transform:rotate(-1.6deg);cursor:pointer">${state.flipped?back:front}</div>
+    </div>
+    <div style="padding:0 24px 38px">
+      <div data-goto="share" class="capsule" style="background:var(--green);color:var(--ink);height:60px;font-size:22px;box-shadow:0 3px 0 rgba(23,32,28,.06)">Share it</div>
+      <div data-goto="home" style="text-align:center;padding:14px 0;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);cursor:pointer">Keep it to myself</div>
+    </div>
+  </div>`;
+};
+
+S.share = ()=>{
+  const hue=state.hue();
+  const aud=[
+    {id:'group',t:'Walking Club',b:'7 friends · they see your route',c:'var(--green)'},
+    {id:'close',t:'Close pals',b:'3 people · stats hidden',c:'var(--butter)'},
+    {id:'public',t:'Everyone',b:'Public feed · route hidden',c:'var(--sky)'},
+  ];
+  const label={group:'Post to Walking Club',close:'Post to close pals',public:'Post to everyone'}[state.audience];
+  return `
+  <div style="background:var(--shareBg);min-height:100%;display:flex;flex-direction:column">
+    <div style="padding:56px 22px 0;display:flex;align-items:center;justify-content:space-between">
+      ${backBtn('congrats')}<span class="mono" style="font-size:10px">Last bit</span>
+    </div>
+    <div style="flex:1;padding:14px 22px 0;overflow:auto">
+      <div class="disp" style="font-size:40px">Who gets to see it?</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
+        ${aud.map(a=>{const on=state.audience===a.id;return `
+          <div data-aud="${a.id}" style="cursor:pointer;display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:24px;background:${a.c};box-shadow:${on?'4px 4px':'3px 3px'} 0 rgba(23,32,28,.06);transform:rotate(${on?'-1.2deg':'0'})">
+            ${blob(40,'rgba(255,255,255,.6)')}
+            <div style="flex:1">
+              <div class="disp" style="font-size:22px">${a.t}</div>
+              <div class="bodytx" style="font-size:12.5px;color:rgba(23,32,28,.75)">${a.b}</div>
+            </div>
+            <span class="radio ${on?'on':''}"></span>
+          </div>`;}).join('')}
+      </div>
+      <div class="disp" style="font-size:18px;font-weight:700;margin:24px 0 12px">Preview</div>
+      <div style="background:#fff;border-radius:8px;padding:11px 11px 16px;box-shadow:4px 4px 0 rgba(23,32,28,.05);transform:rotate(-1.2deg)">
+        <div style="aspect-ratio:1">${collageHTML(9,state.seed,hue)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:11px">
+          <span class="disp" style="font-size:17px">${state.themeTitle()}</span>
+          <span class="mono" style="font-size:11px;color:var(--ink)">00:09 · 9</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 22px 38px">
+      <div class="capsule" style="background:rgba(23,32,28,.08);color:var(--ink);height:52px;font-size:16px;font-weight:700;border:1.5px solid rgba(23,32,28,.18);margin-bottom:10px">⇪ Export / send image</div>
+      <div data-goto="home" class="capsule" style="background:var(--ink);color:var(--cream);height:60px;font-size:21px;font-weight:700">${label}</div>
+    </div>
+  </div>`;
+};
+
+S.profile = ()=>{
+  const scraps=[
+    {t:'Round things',d:'12 Sep · 07:12',hue:'var(--butter)',seed:2},
+    {t:'Something red',d:'09 Sep · 05:48',hue:'var(--coral)',seed:7},
+    {t:'Textures',d:'04 Sep · 09:03',hue:'var(--sky)',seed:5},
+    {t:'Testing Fair',d:'01 Sep · 11:20',hue:'var(--green)',seed:1},
+  ];
+  return `
+  <div style="background:var(--profileBg);min-height:100%;display:flex;flex-direction:column;--bg:var(--profileBg)">
+    <div style="flex:1;overflow:auto;padding:92px 20px 0">
+      <div style="display:flex;align-items:center;gap:15px">
+        <div class="hs-3">${blob(78,'var(--green)',{smile:true})}</div>
+        <div>
+          <div class="disp" style="font-size:28px">Maya Okonkwo</div>
+          <div class="mono" style="font-size:10.5px;letter-spacing:.4px">@mayawalks</div>
+          <div style="display:flex;gap:8px;margin-top:9px">
+            <span class="pill" style="background:rgba(23,32,28,.08);color:var(--ink)"><b>248</b> followers</span>
+            <span class="pill" style="background:rgba(23,32,28,.08);color:var(--ink)"><b>186</b> following</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin:22px 0 24px">
+        ${[['13','Day streak','var(--butter)',-1.2],['4','Scraps','var(--coral)',1.2],['30','Photos','var(--sky)',-1.2]].map(([v,l,c,t])=>`
+          <div style="flex:1;background:${c};border-radius:22px;padding:14px 12px;box-shadow:3px 3px 0 rgba(23,32,28,.05);transform:rotate(${t}deg)">
+            <div class="disp" style="font-size:34px">${v}</div>
+            <div class="mono" style="font-size:9.5px;color:var(--ink)">${l}</div>
+          </div>`).join('')}
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px">
+        <span class="disp" style="font-size:20px;font-weight:700">My scrapbook</span>
+        <span style="flex:1;height:3px;border-radius:9px;background:rgba(23,32,28,.12)"></span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:20px">
+        ${scraps.map((s,i)=>`
+          <div style="position:relative;background:#fff;border-radius:6px;padding:9px 9px 11px;box-shadow:3px 3px 0 rgba(23,32,28,.05);transform:rotate(${i%2?1.6:-1.8}deg)">
+            <span style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:${s.hue}"></span>
+            <div style="aspect-ratio:1;border-radius:4px;overflow:hidden">${collageHTML(9,s.seed,s.hue)}</div>
+            <div class="disp" style="font-size:14px;font-weight:700;margin-top:8px">${s.t}</div>
+            <div class="mono" style="font-size:9.5px;color:var(--muted)">${s.d}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    ${tabbar('profile')}
+  </div>`;
+};
+
+function tabbar(active){
+  return `
+  <div class="tabbar">
+    <div class="t ${active==='feed'?'on':''}" data-goto="home"><span class="ic">${active==='feed'?'⌂':'⌂'}</span><span class="lb">Home</span></div>
+    <div class="plus" data-goto="theme">+</div>
+    <div class="t ${active==='profile'?'on':''}" data-goto="profile"><span class="ic">◉</span><span class="lb">You</span></div>
+  </div>`;
+}
+
+/* ============================ state + engine ============================ */
+const THEME_TITLES={daily:'Testing Fair',round:'Round things',red:'Something red',texture:'Textures',custom:'My own hunt'};
+const THEME_HUES={daily:'var(--green)',round:'var(--butter)',red:'var(--coral)',texture:'var(--sky)',custom:'var(--lilac)'};
+const state={
+  screen:'home', themeId:'daily', photos:9, seed:1, flipped:false,
+  galleryMode:'review', audience:'group',
+  themeTitle(){return THEME_TITLES[this.themeId];},
+  hue(){return THEME_HUES[this.themeId];},
+  huntKind(){return this.themeId==='daily'?'Today’s hunt · everyone':'Freestyle';},
+};
+let history=[];
+
+const SCREENS=['home','nudge','theme','break','gallery','postDetails','congrats','share','profile'];
+const LABELS={home:'Home feed',nudge:'Nudge',theme:'Pick a hunt',break:'Walk & shoot',gallery:'Review / collage',postDetails:'Caption + memo',congrats:'Congrats card',share:'Share',profile:'Profile'};
+const FLOW={
+  home:['theme','profile','nudge'], nudge:['theme','home'], theme:['home','break'],
+  break:['gallery','theme'], gallery:['postDetails','break'], postDetails:['congrats','gallery'],
+  congrats:['share','home'], share:['home','congrats'], profile:['home','theme']
+};
+
+const elScreen=document.getElementById('screen');
+const elBack=document.getElementById('backBtn');
+function render(anim=true){
+  elScreen.innerHTML=`<div class="${anim?'anim':''}" style="min-height:100%">${S[state.screen]()}</div>`;
+  elScreen.scrollTop=0;
+  elBack.disabled=history.length===0;
+  renderChips();
+}
+function go(to,pushHistory=true){
+  if(to===state.screen && to!=='gallery') {}
+  if(pushHistory) history.push(state.screen);
+  // entering a screen resets its transient sub-state (mirrors app)
+  if(to==='theme') state.themeId='daily';
+  if(to==='break'){ state.photos=0; }
+  if(to==='gallery'){ if(state.screen==='break') state.galleryMode='review'; }
+  if(to==='congrats') state.flipped=false;
+  state.screen=to;
+  render();
+}
+
+/* delegated interactions inside the phone */
+elScreen.addEventListener('click',e=>{
+  const g=e.target.closest('[data-goto]'); if(g){go(g.dataset.goto);return;}
+  const p=e.target.closest('[data-pick]'); if(p){state.themeId=p.dataset.pick;render(false);return;}
+  const a=e.target.closest('[data-aud]'); if(a){state.audience=a.dataset.aud;render(false);return;}
+  if(e.target.closest('[data-shoot]')){state.photos++;render(false);return;}
+  if(e.target.closest('[data-shake]')){state.seed++;state.galleryMode='collage';render(false);return;}
+  if(e.target.closest('[data-review]')){state.galleryMode='review';render(false);return;}
+  if(e.target.closest('[data-flip]')){state.flipped=!state.flipped;render(false);return;}
+});
+elBack.addEventListener('click',()=>{ const prev=history.pop(); if(prev){go(prev,false);} });
+
+/* toolbar chips */
+const elChips=document.getElementById('screenChips');
+function renderChips(){
+  elChips.innerHTML=SCREENS.map(s=>`<button class="chip ${s===state.screen?'on':''}" data-jump="${s}">${LABELS[s]}</button>`).join('');
+}
+elChips.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(b){history.push(state.screen);state.screen=b.dataset.jump;render();}});
+
+/* mode toggle */
+const elStage=document.getElementById('stage');
+const elBoard=document.getElementById('board');
+const elHint=document.getElementById('playHint');
+document.getElementById('modeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-mode]'); if(!b)return;
+  [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
+  const board=b.dataset.mode==='board';
+  elStage.classList.toggle('off',board);
+  elBoard.classList.toggle('on',board);
+  elChips.style.display=board?'none':'flex';
+  elHint.style.display=board?'none':'block';
+  if(board) renderBoard();
+});
+
+/* overview board */
+function renderBoard(){
+  const saved={...state};
+  elBoard.innerHTML=`<div class="legend">All ${SCREENS.length} screens · click a frame or an arrow to open it in Play</div>`+
+    SCREENS.map(s=>{
+      // render each screen with default-ish state
+      const snap={...state, screen:s, galleryMode:s==='gallery'?'review':state.galleryMode, flipped:false};
+      Object.assign(state,{screen:s,themeId:'daily',photos:s==='break'?3:9,galleryMode:s==='gallery'?'review':'review',flipped:false,audience:'group'});
+      const html=S[s]();
+      return `
+      <div class="mini">
+        <div class="frame" data-open="${s}">
+          <div class="scaler"><div class="viewport"><div class="screen">${html}</div></div></div>
+        </div>
+        <div class="cap">
+          <h4>${LABELS[s]}</h4>
+          <div class="flow">${(FLOW[s]||[]).map(t=>`<span class="arw" data-open="${t}">→ ${LABELS[t]}</span>`).join('')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  Object.assign(state,saved);
+}
+elBoard.addEventListener('click',e=>{
+  const o=e.target.closest('[data-open]'); if(!o)return;
+  // switch back to play mode at that screen
+  document.querySelector('#modeSeg [data-mode="play"]').click();
+  history=[]; state.screen=o.dataset.open; render();
+});
+
+render(false);
+</script>
+</body>
+</html>

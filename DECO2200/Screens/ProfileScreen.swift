@@ -49,17 +49,20 @@ struct ProfileScreen: View {
     }
 
     private func followPill(count: Int, label: String) -> some View {
-        (Text("\(count) ").font(.mono(11, weight: .bold)) + Text(label).font(.mono(11)))
-            .foregroundStyle(Palette.ink)
-            .padding(.horizontal, 11).padding(.vertical, 5)
-            .background(Capsule().fill(Palette.ink.opacity(0.08)))
+        HStack(spacing: 3) {
+            Text("\(count)").font(.mono(11, weight: .bold))
+            Text(label).font(.mono(11))
+        }
+        .foregroundStyle(Palette.ink)
+        .padding(.horizontal, 11).padding(.vertical, 5)
+        .background(Capsule().fill(Palette.ink.opacity(0.08)))
     }
 
     private var statsRow: some View {
         HStack(spacing: 10) {
             statTile(value: "\(state.streak)", label: "Day streak", hue: Palette.butter, tilt: -1.2)
-            statTile(value: "\(state.myScrapbook.count + savedCollages.count + 18)", label: "Scraps", hue: Palette.coral, tilt: 1.2)
-            statTile(value: "214", label: "Photos", hue: Palette.sky, tilt: -1.2)
+            statTile(value: "\(savedCollages.count)", label: "Scraps", hue: Palette.coral, tilt: 1.2)
+            statTile(value: "\(savedCollages.reduce(0) { $0 + $1.count })", label: "Photos", hue: Palette.sky, tilt: -1.2)
         }
     }
 
@@ -82,16 +85,21 @@ struct ProfileScreen: View {
         }
     }
 
-    private var scrapbookGrid: some View {
-        let columns = [GridItem(.adaptive(minimum: 150, maximum: 170), spacing: 16)]
-        return LazyVGrid(columns: columns, spacing: 16) {
-            ForEach(Array(savedCollages.enumerated()), id: \.element.persistentModelID) { i, saved in
-                SavedScrapTile(saved: saved, tilt: i % 2 == 0 ? -1.8 : 1.6) {
-                    delete(saved)
+    @ViewBuilder private var scrapbookGrid: some View {
+        if savedCollages.isEmpty {
+            Text("No scraps yet — go on a hunt to fill your scrapbook.")
+                .font(.body(13, weight: .semibold))
+                .foregroundStyle(Palette.mutedInk)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 4)
+        } else {
+            let columns = [GridItem(.adaptive(minimum: 150, maximum: 170), spacing: 16)]
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(Array(savedCollages.enumerated()), id: \.element.persistentModelID) { i, saved in
+                    SavedScrapTile(saved: saved, tilt: i % 2 == 0 ? -1.8 : 1.6) {
+                        delete(saved)
+                    }
                 }
-            }
-            ForEach(Array(state.myScrapbook.enumerated()), id: \.offset) { i, scrap in
-                scrapTile(scrap, tilt: i % 2 == 0 ? -1.8 : 1.6)
             }
         }
     }
@@ -209,6 +217,9 @@ private struct SavedScrapTile: View {
                 MonoLabel(text: "photos", size: 7.5, color: Palette.ink, tracking: 1)
             }
             Spacer(minLength: 0)
+            if let memo = saved.voiceMemo {
+                VoiceMemoPlayButton(data: memo, compact: true)
+            }
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

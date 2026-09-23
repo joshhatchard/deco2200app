@@ -131,7 +131,7 @@ func renderPolaroidImage(theme: String, timeString: String, count: Int,
 }
 
 #Preview("Polaroid export") {
-    if let ui = renderPolaroidImage(theme: "Look up", timeString: "12:04", count: 7,
+    if let ui = renderPolaroidImage(theme: "Testing Fair", timeString: "12:04", count: 7,
                                     seed: 3, hue: Palette.green, photos: []) {
         Image(uiImage: ui).resizable().scaledToFit().padding()
     }

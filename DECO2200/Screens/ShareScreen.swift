@@ -145,8 +145,10 @@ struct ShareScreen: View {
                                  timeString: state.formattedElapsed,
                                  count: state.photos.count,
                                  distance: "1.4 km",
+                                 caption: state.caption.trimmingCharacters(in: .whitespacesAndNewlines),
                                  hueRed: Double(r), hueGreen: Double(g), hueBlue: Double(b),
-                                 imageData: data)
+                                 imageData: data,
+                                 voiceMemo: state.voiceMemo)
         modelContext.insert(saved)
         try? modelContext.save()
         #endif

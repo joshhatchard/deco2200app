@@ -7,6 +7,7 @@ struct BreakScreen: View {
     @ObservedObject var state: AppState
     @State private var showChangeHunt = false
     @State private var showEmptyError = false
+    @State private var baseZoom: CGFloat = 1
     #if canImport(UIKit)
     @StateObject private var camera = CameraController()
     #endif
@@ -68,8 +69,27 @@ struct BreakScreen: View {
                         .shadow(color: Palette.ink.opacity(0.07), radius: 0, x: 3, y: 3)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                         .padding(14)
+
+                        #if canImport(UIKit)
+                        if camera.isAuthorized && camera.zoomFactor > 1.05 {
+                            Text(String(format: "%.1f×", camera.zoomFactor))
+                                .font(.mono(11, weight: .medium))
+                                .foregroundStyle(Palette.cream)
+                                .padding(.horizontal, 10).padding(.vertical, 6)
+                                .background(Capsule().fill(Palette.ink.opacity(0.6)))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                                .padding(.bottom, 12)
+                        }
+                        #endif
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    #if canImport(UIKit)
+                    .gesture(
+                        MagnifyGesture()
+                            .onChanged { value in camera.setZoom(baseZoom * value.magnification) }
+                            .onEnded { value in baseZoom = min(8, max(1, baseZoom * value.magnification)) }
+                    )
+                    #endif
                     .frame(maxHeight: .infinity)
 
                     Text("Shoot as many as you like")

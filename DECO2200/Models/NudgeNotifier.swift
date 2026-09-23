@@ -1,5 +1,8 @@
 import Foundation
 import UserNotifications
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Local "get moving" nudges. No server / push certificate needed — these are
 /// scheduled on-device with UserNotifications, so they work on a free-signed
@@ -10,10 +13,10 @@ enum NudgeNotifier {
 
     /// A little variety so it never feels like the same canned reminder.
     private static let messages: [(title: String, body: String)] = [
-        ("Your chair called 🪑", "It's getting clingy. You've been sitting ages — go find something!"),
+        ("Your chair called 🪑", "It's getting clingy. You've been sitting ages.. go find something!"),
         ("Legs on standby 🦵", "Too much sitting! The world's out there waiting to be photographed."),
         ("Psst… adventure's calling 📸", "You've been parked a while. Time to look up and hunt some shots."),
-        ("Up you get, explorer 🧭", "Enough sitting for one day — let's get moving and grab a few photos."),
+        ("Up you get, explorer 🧭", "Enough sitting for one day.. let's get moving and grab a few photos."),
         ("Move-o'clock ⏰", "Your streak misses you. Stretch those legs and go on a little hunt.")
     ]
 
@@ -30,10 +33,29 @@ enum NudgeNotifier {
         content.title = pick.title
         content.body = pick.body
         content.sound = .default
+        if let logo = logoAttachment() { content.attachments = [logo] }
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, seconds), repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
+    }
+
+    /// The ScrapMap logo shown as the notification's image. (The small icon on
+    /// the left of a banner is always the app icon, set automatically by iOS.)
+    private static func logoAttachment() -> UNNotificationAttachment? {
+        #if canImport(UIKit)
+        guard let image = UIImage(named: "AppLogo"), let data = image.pngData() else { return nil }
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("scrapmap-nudge-\(UUID().uuidString).png")
+        do {
+            try data.write(to: url)
+            return try UNNotificationAttachment(identifier: "logo", url: url)
+        } catch {
+            return nil
+        }
+        #else
+        return nil
+        #endif
     }
 
     /// Cancel the pending nudge (e.g. the user came back to the app).

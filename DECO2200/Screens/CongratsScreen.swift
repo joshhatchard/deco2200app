@@ -27,7 +27,13 @@ struct CongratsScreen: View {
                 .frame(maxWidth: 322)
                 .rotationEffect(.degrees(-1.6))
                 .contentShape(Rectangle())
-                .onTapGesture { state.flipped.toggle() }
+                .onTapGesture { flip() }
+                .gesture(
+                    DragGesture(minimumDistance: 24)
+                        .onEnded { value in
+                            if abs(value.translation.width) > 40 { flip() }
+                        }
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(24)
 
@@ -55,6 +61,10 @@ struct CongratsScreen: View {
         .background(Palette.homeBg)
     }
 
+    private func flip() {
+        state.flipped.toggle()
+    }
+
     private var decorations: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6).fill(Palette.butter).frame(width: 22, height: 22)
@@ -75,7 +85,6 @@ struct CongratsScreen: View {
             HStack {
                 Text(state.themeTitle).font(.display(21, weight: .heavy))
                 Spacer()
-                MonoLabel(text: "Flip me", size: 9.5, tracking: 1)
             }
             .padding(.top, 14)
         }
@@ -83,6 +92,22 @@ struct CongratsScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.white))
         .hardShadow(Palette.ink.opacity(0.06), x: 4, y: 4)
+        .overlay(alignment: .topTrailing) { flipSticker }
+    }
+
+    /// Playful corner sticker cueing that the card flips.
+    private var flipSticker: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "hand.tap.fill").font(.system(size: 11, weight: .black))
+            Text("flip me!").font(.display(13, weight: .heavy))
+        }
+        .foregroundStyle(Palette.ink)
+        .padding(.horizontal, 12).padding(.vertical, 7)
+        .background(Capsule().fill(Palette.butter))
+        .overlay(Capsule().strokeBorder(Palette.ink, lineWidth: 2))
+        .hardShadow(Palette.ink.opacity(0.18), x: 2, y: 2)
+        .rotationEffect(.degrees(8))
+        .offset(x: 8, y: -12)
     }
 
     private var back: some View {
@@ -108,6 +133,12 @@ struct CongratsScreen: View {
                 .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white.opacity(0.6)))
             }
             .padding(.top, 16)
+
+            if let memo = state.voiceMemo {
+                VoiceMemoPlayButton(data: memo)
+                    .padding(.top, 14)
+            }
+
             Spacer(minLength: 0)
             MonoLabel(text: "Flip back", size: 9.5, color: Palette.ink, tracking: 1)
                 .frame(maxWidth: .infinity, alignment: .trailing)

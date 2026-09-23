@@ -81,7 +81,7 @@ struct WalkActivityLiveActivity: Widget {
 
 extension WalkActivityAttributes {
     fileprivate static var preview: WalkActivityAttributes {
-        WalkActivityAttributes(theme: "Look up", startDate: .now,
+        WalkActivityAttributes(theme: "Testing Fair", startDate: .now,
                                hueRed: 0, hueGreen: 0.82, hueBlue: 0.45)
     }
 }

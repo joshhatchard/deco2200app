@@ -13,21 +13,21 @@ struct HuntTheme: Identifiable {
 enum Hunts {
     /// The one shared prompt everyone gets, refreshed at midnight —
     /// the Wordle-style "togetherness" mechanic from the design brief.
-    static let daily = HuntTheme(id: "daily", title: "Look up", hue: Palette.mint, blurb: "", tags: [])
+    static let daily = HuntTheme(id: "daily", title: "Testing Fair", hue: Palette.mint, blurb: "", tags: [])
     static let dailyPeopleOut = "3,241"
 
     /// Freestyle themes, chosen when the user wants their own constraint
     /// instead of today's shared one.
     static let freestyle: [HuntTheme] = [
-        HuntTheme(id: "round", title: "10 round things", hue: Palette.butter,
+        HuntTheme(id: "round", title: "Round things", hue: Palette.butter,
                   blurb: "Wheels, coins, manhole covers, the moon if you are lucky.",
-                  tags: ["Easy", "10 shots"]),
+                  tags: ["Easy"]),
         HuntTheme(id: "red", title: "Something red", hue: Palette.coral,
                   blurb: "One colour, all walk. Harder than it sounds after shot four.",
-                  tags: ["Colour hunt", "8 shots"]),
-        HuntTheme(id: "door", title: "Doorways", hue: Palette.sky,
-                  blurb: "Thresholds, gates, gaps between buildings.",
-                  tags: ["Architecture", "6 shots"])
+                  tags: ["Colour hunt"]),
+        HuntTheme(id: "texture", title: "Textures", hue: Palette.sky,
+                  blurb: "Fun and interesting textures on materials or surfaces.",
+                  tags: ["Texture"])
     ]
 
     static func theme(for id: String) -> HuntTheme? {

@@ -31,7 +31,7 @@ struct FloatingTabBar: View {
 
     private func tab(kind: TabKind, action: @escaping () -> Void) -> some View {
         let isActive = kind == active
-        let label = kind == .feed ? "Feed" : "You"
+        let label = kind == .feed ? "Home" : "You"
         let color = isActive ? Palette.cream : Palette.cream.opacity(0.6)
         return Button(action: action) {
             VStack(spacing: 4) {
@@ -43,21 +43,15 @@ struct FloatingTabBar: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
     private func icon(kind: TabKind, isActive: Bool, color: Color) -> some View {
+        let name: String
         switch kind {
-        case .feed:
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(isActive ? color : Color.clear)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(isActive ? Color.clear : color, lineWidth: 2.5)
-                )
-        case .profile:
-            Circle()
-                .fill(isActive ? color : Color.clear)
-                .overlay(Circle().strokeBorder(isActive ? Color.clear : color, lineWidth: 2.5))
+        case .feed: name = isActive ? "house.fill" : "house"
+        case .profile: name = isActive ? "person.crop.circle.fill" : "person.crop.circle"
         }
+        return Image(systemName: name)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(color)
     }
 
     private var createButton: some View {

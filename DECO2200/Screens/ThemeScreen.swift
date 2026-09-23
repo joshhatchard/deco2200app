@@ -6,38 +6,41 @@ struct ThemeScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button { state.go(.home) } label: {
-                    Text("‹").font(.mono(15))
-                        .frame(width: 40, height: 40)
-                        .background(Circle().fill(.white))
-                        .hardShadow(Palette.ink.opacity(0.05), x: 2, y: 2)
-                        .foregroundStyle(Palette.ink)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Button { state.go(.home) } label: {
+                        Text("‹").font(.mono(15))
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(.white))
+                            .hardShadow(Palette.ink.opacity(0.05), x: 2, y: 2)
+                            .foregroundStyle(Palette.ink)
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
+                    MonoLabel(text: "Pick your hunt", size: 10, tracking: 1.4)
                 }
-                .buttonStyle(.plain)
-                Spacer()
-                MonoLabel(text: "Pick your hunt", size: 10, tracking: 1.4)
+                Text("Snap your walk")
+                    .font(.display(32, weight: .heavy))
+                    .foregroundStyle(Palette.ink)
             }
             .padding(.horizontal, 22)
-            .padding(.top, 56)
+            .padding(.top, 52)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    dailyCard
-                    sectionRule.padding(.top, 22)
-                    VStack(spacing: 12) {
-                        ForEach(Hunts.freestyle) { theme in
-                            freestyleCard(theme)
-                        }
-                        customCard
+            VStack(alignment: .leading, spacing: 0) {
+                dailyCard
+                sectionRule.padding(.top, 22)
+                VStack(spacing: 12) {
+                    ForEach(Hunts.freestyle) { theme in
+                        freestyleCard(theme)
                     }
-                    .padding(.top, 14)
+                    customCard
                 }
-                .padding(.horizontal, 22)
                 .padding(.top, 14)
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .scrollDismissesKeyboard(.interactively)
+            .padding(.horizontal, 22)
+            .padding(.top, 10)
+
+            Spacer(minLength: 0)
 
             Button {
                 state.startBreak()
@@ -52,7 +55,7 @@ struct ThemeScreen: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 22)
-            .padding(.top, 10)
+            .padding(.top, 20)
             .padding(.bottom, 38)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -119,6 +122,10 @@ struct ThemeScreen: View {
                     .lineSpacing(3)
             }
             Spacer(minLength: 0)
+            Circle()
+                .fill(selected ? Palette.ink : Color.clear)
+                .overlay(Circle().strokeBorder(selected ? Color.clear : Palette.ink.opacity(0.25), lineWidth: 2.5))
+                .frame(width: 26, height: 26)
         }
         .padding(16)
         .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(selected ? theme.hue : .white))
@@ -135,10 +142,10 @@ struct ThemeScreen: View {
             .font(.display(22, weight: .bold))
             .foregroundStyle(Palette.ink)
             .focused($customFocused)
-            .onChange(of: customFocused) { focused in
+            .onChange(of: customFocused) { _, focused in
                 if focused { state.selectCustom() }
             }
-            .onChange(of: state.customTheme) { _ in state.selectCustom() }
+            .onChange(of: state.customTheme) { _, _ in state.selectCustom() }
             .padding(18)
             .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(selected ? Palette.lilac : .white))
             .overlay(

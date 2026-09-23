@@ -3,7 +3,7 @@ import Combine
 import Foundation
 
 enum Screen: String, Equatable {
-    case home, nudge, theme, breakScreen, gallery, congrats, share, profile
+    case home, nudge, theme, breakScreen, gallery, postDetails, congrats, share, profile
 }
 
 enum GalleryMode: Equatable {
@@ -22,6 +22,8 @@ final class AppState: ObservableObject {
     @Published var photos: [PhotoShot] = []
     @Published var elapsedSeconds: Int = 0
     @Published var seed: Int = 1
+    @Published var caption: String = ""
+    @Published var voiceMemo: Data?
 
     @Published var galleryMode: GalleryMode = .review
     @Published var cardIndex: Int = 0
@@ -84,6 +86,8 @@ final class AppState: ObservableObject {
         photos = []
         deletedShots = []
         elapsedSeconds = 0
+        caption = ""
+        voiceMemo = nil
         screen = .breakScreen
         WalkLiveActivity.start(theme: themeTitle, hue: currentHue, startDate: Date())
     }
@@ -148,11 +152,12 @@ final class AppState: ObservableObject {
     }
 
     /// "Use this one" — the walk is confirmed here, so the Live Activity ends
-    /// and disappears immediately.
+    /// and disappears immediately. Goes to the caption/voice memo screen before
+    /// the congrats card.
     func endBreak() {
         WalkLiveActivity.end()
         flipped = false
-        screen = .congrats
+        screen = .postDetails
     }
 
     // MARK: - Share / post
@@ -164,6 +169,8 @@ final class AppState: ObservableObject {
         streak += 1
         photos = []
         elapsedSeconds = 0
+        caption = ""
+        voiceMemo = nil
         screen = .home
     }
 

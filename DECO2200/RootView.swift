@@ -16,6 +16,7 @@ struct RootView: View {
             case .theme: ThemeScreen(state: state)
             case .breakScreen: BreakScreen(state: state)
             case .gallery: GalleryScreen(state: state)
+            case .postDetails: PostDetailsScreen(state: state)
             case .congrats: CongratsScreen(state: state)
             case .share: ShareScreen(state: state)
             case .profile: ProfileScreen(state: state)
@@ -32,8 +33,8 @@ struct RootView: View {
             state.syncTimer()
             NudgeNotifier.requestAuthorization()
         }
-        .onChange(of: state.screen) { _ in state.syncTimer() }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: state.screen) { _, _ in state.syncTimer() }
+        .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .background: NudgeNotifier.scheduleNudge(after: 30)   // ping ~30s after they put it down
             case .active: NudgeNotifier.cancelNudge()                  // came back — no need to nudge

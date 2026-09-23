@@ -7,12 +7,12 @@ import UIKit
 import ImageIO
 
 /// Drives a live back-camera capture session and hands back JPEG/HEIC data for
-/// each shot. All AVFoundation work happens on a private serial queue; only the
-/// small published flags are touched on the main actor.
-@MainActor
+/// each shot. All AVFoundation work happens on a private serial queue; the one
+/// published flag is updated on the main actor.
 final class CameraController: ObservableObject {
     let session = AVCaptureSession()
     @Published var isAuthorized = false
+    @Published var zoomFactor: CGFloat = 1
 
     private let photoOutput = AVCapturePhotoOutput()
     private let sessionQueue = DispatchQueue(label: "scrapmap.camera.session")
@@ -24,10 +24,9 @@ final class CameraController: ObservableObject {
     /// Ask for permission (once), configure the session if needed, and start
     /// the preview running off the main thread.
     func start() async {
-        if !isAuthorized {
-            isAuthorized = await AVCaptureDevice.requestAccess(for: .video)
-        }
-        guard isAuthorized else { return }
+        let granted = await AVCaptureDevice.requestAccess(for: .video)
+        await MainActor.run { self.isAuthorized = granted }
+        guard granted else { return }
         sessionQueue.async {
             if !self.isConfigured { self.configureSession() }
             if !self.session.isRunning { self.session.startRunning() }
@@ -47,7 +46,27 @@ final class CameraController: ObservableObject {
             self.session.beginConfiguration()
             self.addVideoInput(for: self.position)
             self.session.commitConfiguration()
+            self.lockAndZoom(1) // reset zoom when switching cameras
         }
+    }
+
+    /// Pinch-to-zoom entry point — clamps to the device's supported range.
+    func setZoom(_ factor: CGFloat) {
+        sessionQueue.async { self.lockAndZoom(factor) }
+    }
+
+    /// Applies a zoom factor to the active device. Must be called on the
+    /// session queue.
+    private func lockAndZoom(_ factor: CGFloat) {
+        guard let device = videoInput?.device else { return }
+        let maxZoom = min(device.activeFormat.videoMaxZoomFactor, 8)
+        let clamped = max(1, min(factor, maxZoom))
+        do {
+            try device.lockForConfiguration()
+            device.videoZoomFactor = clamped
+            device.unlockForConfiguration()
+            DispatchQueue.main.async { self.zoomFactor = clamped }
+        } catch {}
     }
 
     /// Take a single photo. Returns the encoded image data, or nil if the
@@ -56,6 +75,13 @@ final class CameraController: ObservableObject {
         guard isAuthorized, isConfigured else { return nil }
         return await withCheckedContinuation { (continuation: CheckedContinuation<Data?, Never>) in
             sessionQueue.async {
+                // No active video connection (e.g. Simulator, or permission
+                // denied) — return immediately instead of waiting forever for a
+                // delegate callback that will never come.
+                guard self.photoOutput.connection(with: .video)?.isActive == true else {
+                    continuation.resume(returning: nil)
+                    return
+                }
                 self.captureDelegate.onCapture = { data in
                     // Downsample immediately so the app only ever stores/decodes
                     // a modest image, not a multi-megapixel camera frame.
@@ -108,10 +134,12 @@ final class CameraController: ObservableObject {
 }
 
 /// Bridges the one-shot photo delegate callback back to the async caller.
-private final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
-    var onCapture: ((Data?) -> Void)?
+/// AVFoundation invokes this off the main thread, so the conformance is
+/// explicitly nonisolated.
+private final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
+    nonisolated(unsafe) var onCapture: ((Data?) -> Void)?
 
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    nonisolated func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         let data = error == nil ? photo.fileDataRepresentation() : nil
         let callback = onCapture
         onCapture = nil

@@ -48,12 +48,17 @@ struct BlobFace: View {
         .frame(width: size, height: size)
         .offset(y: bob && bobbing ? -size * 0.03 : 0)
         .rotationEffect(.degrees(wobble && bobbing ? 2 : (wobble ? -2 : 0)))
-        .onAppear {
-            if blink {
-                withAnimation(.easeInOut(duration: 0.12).repeatForever(autoreverses: true).delay(1.4)) {
-                    blinking.toggle()
-                }
+        .task {
+            guard blink else { return }
+            // Natural blink: a quick close/open, then a long pause before the next.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(Double.random(in: 3.5...6)))
+                withAnimation(.easeInOut(duration: 0.1)) { blinking = true }
+                try? await Task.sleep(for: .seconds(0.12))
+                withAnimation(.easeInOut(duration: 0.1)) { blinking = false }
             }
+        }
+        .onAppear {
             if bob || wobble {
                 withAnimation(.easeInOut(duration: bob ? 1.8 : 0.8).repeatForever(autoreverses: true)) {
                     bobbing = true

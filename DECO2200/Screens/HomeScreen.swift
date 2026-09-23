@@ -77,6 +77,19 @@ struct HomeScreen: View {
                 .offset(x: 14, y: -12)
 
             VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 11, weight: .heavy))
+                    Text("DAILY QUEST")
+                        .font(.mono(11, weight: .medium))
+                        .tracking(1.5)
+                }
+                .foregroundStyle(Palette.cream)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(Capsule().fill(Palette.ink))
+                .padding(.bottom, 12)
+
                 HStack(spacing: 8) {
                     Circle().fill(Palette.ink).frame(width: 9, height: 9)
                         .opacity(dotPulse ? 1 : 0.25)
@@ -85,12 +98,13 @@ struct HomeScreen: View {
                                 dotPulse = true
                             }
                         }
-                    MonoLabel(text: "Today's hunt · Gone in \(countdownToMidnight())", size: 9.5, color: Palette.ink, tracking: 1.5)
+                    MonoLabel(text: "Gone in \(countdownToMidnight())", size: 9.5, color: Palette.ink, tracking: 1.5)
                 }
                 Text(Hunts.daily.title)
                     .font(.display(44))
                     .foregroundStyle(Palette.ink)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .frame(maxWidth: 200, alignment: .leading)
                     .padding(.top, 6)
                 Text("\(Hunts.dailyPeopleOut) out on it today.")
@@ -119,21 +133,20 @@ struct HomeScreen: View {
 
     private var streakCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            MonoLabel(text: "Streak", size: 9.5, tracking: 1.4)
-            HStack(alignment: .lastTextBaseline, spacing: 8) {
-                Text("\(state.streak)").font(.display(58)).foregroundStyle(Palette.ink)
-                Text("days").font(.body(12.5, weight: .bold)).foregroundStyle(Palette.ink)
+            HStack(alignment: .top) {
+                MonoLabel(text: "Streak", size: 9.5, tracking: 1.4)
                 Spacer()
                 MonoLabel(text: "Best \(state.bestStreak)", size: 10, color: Palette.ink, tracking: 0.6)
                     .padding(.horizontal, 12).padding(.vertical, 7)
                     .background(Capsule().fill(Palette.ink.opacity(0.08)))
             }
+            HStack(alignment: .lastTextBaseline, spacing: 8) {
+                Text("\(state.streak)").font(.display(58)).foregroundStyle(Palette.ink)
+                Text("days").font(.body(12.5, weight: .bold)).foregroundStyle(Palette.ink)
+            }
             HStack(spacing: 5) {
                 ForEach(0..<7, id: \.self) { i in dayCell(i) }
             }
-            .padding(.top, 14)
-            MonoLabel(text: "Ticks are days you finished a hunt", size: 9, tracking: 1)
-                .padding(.top, 9)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -178,15 +191,26 @@ struct HomeScreen: View {
 
     private var feedList: some View {
         VStack(spacing: 30) {
-            ForEach(savedCollages) { saved in
-                SavedFeedCard(saved: saved)
-            }
-            ForEach(state.feed) { post in
-                FeedCard(post: post,
-                         onFlip: { state.toggleFlip(post) },
-                         onLike: { state.toggleLike(post) })
+            if savedCollages.isEmpty {
+                emptyFeed
+            } else {
+                ForEach(savedCollages) { saved in
+                    SavedFeedCard(saved: saved)
+                }
             }
         }
+    }
+
+    private var emptyFeed: some View {
+        VStack(spacing: 6) {
+            Text("No scraps yet")
+                .font(.display(20, weight: .bold)).foregroundStyle(Palette.ink)
+            Text("Go on a hunt and your posts will land here.")
+                .font(.body(13, weight: .semibold)).foregroundStyle(Palette.mutedInk)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 30)
     }
 }
 
@@ -194,6 +218,7 @@ struct HomeScreen: View {
 /// the stored collage image, back shows the walk stats, matching other cards.
 private struct SavedFeedCard: View {
     let saved: SavedCollage
+    @Environment(\.modelContext) private var modelContext
     @State private var flipped = false
 
     var body: some View {
@@ -217,9 +242,35 @@ private struct SavedFeedCard: View {
                         .font(.mono(9.5)).foregroundStyle(Palette.mutedInk)
                 }
                 Spacer(minLength: 8)
+                Button { toggleLike() } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: saved.liked ? "heart.fill" : "heart")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(saved.liked ? Palette.coral : Palette.ink)
+                        Text("\(saved.likes)").font(.mono(12, weight: .medium)).foregroundStyle(Palette.ink)
+                    }
+                    .padding(.horizontal, 11).padding(.vertical, 6)
+                    .background(Capsule().fill(Palette.ink.opacity(0.06)))
+                }
+                .buttonStyle(.plain)
             }
             .padding(.top, 12)
+
+            if !saved.caption.isEmpty {
+                Text(saved.caption)
+                    .font(.body(13, weight: .semibold))
+                    .foregroundStyle(Palette.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 8)
+            }
         }
+    }
+
+    private func toggleLike() {
+        saved.liked.toggle()
+        saved.likes += saved.liked ? 1 : -1
+        try? modelContext.save()
     }
 
     private var front: some View {
@@ -246,6 +297,12 @@ private struct SavedFeedCard: View {
                 statTile(value: saved.distance, label: "Route")
             }
             .padding(.top, 14)
+
+            if let memo = saved.voiceMemo {
+                VoiceMemoPlayButton(data: memo)
+                    .padding(.top, 12)
+            }
+
             Spacer(minLength: 0)
             MonoLabel(text: "Tap = photos", size: 9.5, color: Palette.ink, tracking: 1)
                 .frame(maxWidth: .infinity, alignment: .trailing)

@@ -11,29 +11,41 @@ final class SavedCollage {
     var timeString: String
     var count: Int
     var distance: String
+    var caption: String = ""
     var hueRed: Double
     var hueGreen: Double
     var hueBlue: Double
     @Attribute(.externalStorage) var imageData: Data
+    @Attribute(.externalStorage) var voiceMemo: Data?
+    var liked: Bool = false
+    var likes: Int = 0
 
     init(createdAt: Date = Date(),
          theme: String,
          timeString: String,
          count: Int,
          distance: String,
+         caption: String = "",
          hueRed: Double,
          hueGreen: Double,
          hueBlue: Double,
-         imageData: Data) {
+         imageData: Data,
+         voiceMemo: Data? = nil,
+         liked: Bool = false,
+         likes: Int = 0) {
         self.createdAt = createdAt
         self.theme = theme
         self.timeString = timeString
         self.count = count
         self.distance = distance
+        self.caption = caption
         self.hueRed = hueRed
         self.hueGreen = hueGreen
         self.hueBlue = hueBlue
         self.imageData = imageData
+        self.voiceMemo = voiceMemo
+        self.liked = liked
+        self.likes = likes
     }
 
     var hue: Color { Color(.sRGB, red: hueRed, green: hueGreen, blue: hueBlue) }
