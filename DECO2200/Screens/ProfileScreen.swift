@@ -153,7 +153,7 @@ private struct SavedScrapTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            FlipCard(flipped: flipped) {
+            FlipCard(flipped: flipped, showHint: true) {
                 collageThumb
                     .aspectRatio(1, contentMode: .fit)
                     .frame(maxWidth: .infinity)

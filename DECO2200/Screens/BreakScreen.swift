@@ -1,6 +1,7 @@
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
+import AudioToolbox
 #endif
 
 struct BreakScreen: View {
@@ -8,6 +9,7 @@ struct BreakScreen: View {
     @State private var showChangeHunt = false
     @State private var showEmptyError = false
     @State private var baseZoom: CGFloat = 1
+    @State private var shutterFlash = false
     #if canImport(UIKit)
     @StateObject private var camera = CameraController()
     #endif
@@ -71,16 +73,28 @@ struct BreakScreen: View {
                         .padding(14)
 
                         #if canImport(UIKit)
-                        if camera.isAuthorized && camera.zoomFactor > 1.05 {
-                            Text(String(format: "%.1f×", camera.zoomFactor))
-                                .font(.mono(11, weight: .medium))
-                                .foregroundStyle(Palette.cream)
-                                .padding(.horizontal, 10).padding(.vertical, 6)
-                                .background(Capsule().fill(Palette.ink.opacity(0.6)))
-                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                                .padding(.bottom, 12)
+                        // Always show the zoom level so pinch-to-zoom is discoverable.
+                        if camera.isAuthorized {
+                            HStack(spacing: 4) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text(String(format: "%.1f×", camera.zoomFactor))
+                                    .font(.mono(11, weight: .medium))
+                            }
+                            .foregroundStyle(Palette.cream)
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(Capsule().fill(Palette.ink.opacity(0.6)))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                            .padding(.bottom, 12)
                         }
                         #endif
+                    }
+                    .overlay {
+                        // Brief white flash over the viewfinder to confirm a shot.
+                        Rectangle()
+                            .fill(.white)
+                            .opacity(shutterFlash ? 0.85 : 0)
+                            .allowsHitTesting(false)
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                     #if canImport(UIKit)
@@ -104,15 +118,11 @@ struct BreakScreen: View {
                 .rotationEffect(.degrees(-1.2))
                 .frame(maxHeight: .infinity)
 
-                HStack(spacing: 14) {
-                    Button { state.go(.gallery) } label: { stackThumbnail }
-                        .buttonStyle(.plain)
-                    Text(state.photos.isEmpty ? "Tap the big button to start your roll" : "Tap the pile to review and bin any duds")
-                        .font(.body(12, weight: .bold))
-                        .foregroundStyle(Palette.ink.opacity(0.7))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                ZStack {
+                    // Centred shutter — matches the standard phone-camera layout.
                     Button {
                         #if canImport(UIKit)
+                        triggerShutter()
                         Task {
                             let data = await camera.capturePhoto()
                             state.capture(imageData: data)
@@ -127,8 +137,20 @@ struct BreakScreen: View {
                             .shadow(color: Palette.ink.opacity(0.06), radius: 0, x: 0, y: 3)
                     }
                     .buttonStyle(.plain)
+
+                    // Photo pile sits in the leading corner like a camera-roll shortcut.
+                    Button { state.go(.gallery) } label: { stackThumbnail }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.top, 18)
+
+                Text(state.photos.isEmpty ? "Tap the big button to start your roll" : "Tap the pile to review and bin any duds")
+                    .font(.body(12, weight: .bold))
+                    .foregroundStyle(Palette.ink.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 10)
             }
             .padding(.horizontal, 20)
             .frame(maxHeight: .infinity)
@@ -173,6 +195,17 @@ struct BreakScreen: View {
         .onDisappear { camera.stop() }
         #endif
     }
+
+    #if canImport(UIKit)
+    /// Fire the camera-shutter feedback: a quick viewfinder flash, the system
+    /// shutter sound, and a haptic tap so a capture feels tactile.
+    private func triggerShutter() {
+        AudioServicesPlaySystemSound(1108) // system camera shutter
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        withAnimation(.easeOut(duration: 0.05)) { shutterFlash = true }
+        withAnimation(.easeIn(duration: 0.25).delay(0.05)) { shutterFlash = false }
+    }
+    #endif
 
     @ViewBuilder private var cameraBackground: some View {
         #if canImport(UIKit)

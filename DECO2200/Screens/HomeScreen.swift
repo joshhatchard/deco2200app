@@ -224,7 +224,7 @@ private struct SavedFeedCard: View {
     var body: some View {
         VStack(spacing: 0) {
             PolaroidFrame(pinColor: saved.hue) {
-                FlipCard(flipped: flipped) {
+                FlipCard(flipped: flipped, showHint: true) {
                     front
                 } back: {
                     back
@@ -343,7 +343,7 @@ private struct FeedCard: View {
     var body: some View {
         VStack(spacing: 0) {
             PolaroidFrame(pinColor: post.hue, tilt: 0, pinSize: 18) {
-                FlipCard(flipped: post.flipped) {
+                FlipCard(flipped: post.flipped, showHint: true) {
                     front
                 } back: {
                     back

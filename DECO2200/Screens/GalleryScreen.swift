@@ -11,6 +11,10 @@ struct GalleryScreen: View {
 
     private let darkInk = Color(hex: 0x123A63)
 
+    /// One-time cue so users learn the pile responds to a shake, not a tap.
+    @AppStorage("hasDiscoveredShake") private var hasDiscoveredShake = false
+    @State private var shakeHint: CGFloat = 0
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -63,13 +67,15 @@ struct GalleryScreen: View {
                     emptyPile
                 } else {
                     ReviewDeck(state: state)
+                        .offset(x: shakeHint)
+                        .onAppear { playShakeHint() }
                     VStack(spacing: 9) {
                         Text("Swipe up to delete\nSwipe left / right to view photos")
                             .font(.mono(9.5))
                             .tracking(1)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(darkInk)
-                        Button { state.shuffle() } label: { shakeButton("Shake to collage") }
+                        Button { markShakeDiscovered(); state.shuffle() } label: { shakeButton("Shake to collage") }
                             .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 22)
@@ -89,7 +95,7 @@ struct GalleryScreen: View {
                     }
                     .buttonStyle(.plain)
 
-                    Button { state.shuffle() } label: {
+                    Button { markShakeDiscovered(); state.shuffle() } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "iphone.radiowaves.left.and.right")
                                 .font(.system(size: 16, weight: .bold))
@@ -116,7 +122,26 @@ struct GalleryScreen: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.galleryBg)
-        .onShake { state.shuffle() }
+        .onShake { markShakeDiscovered(); state.shuffle() }
+    }
+
+    /// A quick left-right shimmy of the pile, played once, to suggest shaking.
+    private func playShakeHint() {
+        guard !hasDiscoveredShake else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            guard !hasDiscoveredShake else { return }
+            withAnimation(.easeInOut(duration: 0.08).repeatCount(6, autoreverses: true)) {
+                shakeHint = 7
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeOut(duration: 0.12)) { shakeHint = 0 }
+            }
+        }
+    }
+
+    private func markShakeDiscovered() {
+        hasDiscoveredShake = true
+        shakeHint = 0
     }
 
     private var emptyPile: some View {
@@ -195,6 +220,22 @@ private struct ReviewDeck: View {
             }
             .aspectRatio(1, contentMode: .fit)
             .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+            .overlay(alignment: .top) {
+                // Steady hint on the top card marking the delete direction, so
+                // swipe-up-to-bin reads differently from swipe-sideways-to-browse.
+                if isTop {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.up")
+                        Text("Swipe up to bin")
+                    }
+                    .font(.mono(9, weight: .bold))
+                    .foregroundStyle(Palette.cream)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(Capsule().fill(Palette.ink.opacity(0.55)))
+                    .padding(.top, 8)
+                    .opacity(binning ? 0 : 0.5 + min(1, max(0, Double(-lift) / 80)) * 0.5)
+                }
+            }
 
             HStack(alignment: .lastTextBaseline) {
                 Text(shot.caption).font(.display(13, weight: .bold)).foregroundStyle(Palette.ink)
